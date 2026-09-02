@@ -10,6 +10,12 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# O sandbox de desenvolvimento não consegue baixar logs/artefatos da Actions
+# (domínio bloqueado), então em caso de falha a esteira publica o fim do log
+# como um comentário no próprio commit — legível via api.github.com.
+permissions:
+  contents: write
+
 jobs:
   build-android:
     name: analyze · test · build APK
@@ -35,35 +41,36 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
-      # O sandbox de desenvolvimento não tem acesso a storage.googleapis.com,
-      # então o esqueleto nativo (gradle wrapper, gradle scripts) é materializado
-      # aqui e os arquivos canônicos de tool/android/ são aplicados por cima.
       - name: Materialize Android project
-        run: bash tool/setup_android.sh
+        run: bash tool/setup_android.sh | tee -a ci.log
 
       - name: Dependencies
-        run: flutter pub get
+        run: flutter pub get | tee -a ci.log
 
-      # Formata no workspace da CI (o sandbox de desenvolvimento não tem o SDK
-      # Dart, então não há como formatar localmente antes do push).
       - name: Format
-        run: dart format .
+        run: dart format . | tee -a ci.log
 
       - name: Analyze
-        # Infos de estilo não derrubam o build; erros e avisos, sim.
-        run: flutter analyze --no-fatal-infos
+        # Erros de compilação derrubam; avisos de estilo não (vêm no log de qualquer forma).
+        run: |
+          set -o pipefail
+          flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee -a ci.log
 
       - name: Test
-        run: flutter test --reporter expanded
+        run: |
+          set -o pipefail
+          flutter test --reporter expanded 2>&1 | tee -a ci.log
 
       - name: Build debug APK
-        run: flutter build apk --debug
+        run: |
+          set -o pipefail
+          flutter build apk --debug 2>&1 | tee -a ci.log
 
       - name: Rename artifact
         run: |
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-debug.apk dist/directtube-debug.apk
-          ls -la dist/
+          ls -la dist/ | tee -a ci.log
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -71,3 +78,18 @@ jobs:
           name: directtube-debug-apk
           path: dist/directtube-debug.apk
           if-no-files-found: error
+
+      - name: Report failure as commit comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "### CI falhou (run $GITHUB_RUN_ID)"
+            echo
+            echo '```'
+            tail -n 150 ci.log 2>/dev/null || echo "(sem ci.log)"
+            echo '```'
+          } > body.md
+          gh api -X POST "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            -f body=@body.md || echo "não consegui comentar"

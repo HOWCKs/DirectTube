@@ -43,6 +43,9 @@ echo "==> ajustando applicationId/namespace para $APP_ID"
 for f in android/app/build.gradle android/app/build.gradle.kts; do
   if [ -f "$f" ]; then
     sed -i "s/${GENERATED_ID}/${APP_ID}/g" "$f"
+    # file_picker (via flutter_plugin_android_lifecycle) exige compileSdk >= 36.
+    sed -i -E "s/compileSdk = .*/compileSdk = 36/" "$f"
+    sed -i -E "s/compileSdkVersion .*/compileSdkVersion 36/" "$f"
     echo "    patch: $f"
   fi
 done

@@ -21,9 +21,8 @@ dependencies:
   file_picker: ^8.1.0
 
   # Motor de extração nativo em Dart (YouTube) — sem runtime Python no APK.
-  # O motor yt-dlp embarcado entra como implementação alternativa da mesma
-  # interface (lib/data/engine/download_engine.dart).
-  youtube_explode_dart: ^2.0.0
+  # v3: aceita HttpClient customizado (User-Agent real) contra rate-limit.
+  youtube_explode_dart: ^3.1.0
 
   # Reprodução local dos arquivos baixados
   just_audio: ^0.9.40

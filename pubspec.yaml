@@ -17,9 +17,6 @@ dependencies:
   path_provider: ^2.1.4
   shared_preferences: ^2.3.0
 
-  # Seletor de pasta de destino (interno / cartão SD / personalizado)
-  file_picker: ^8.1.0
-
   # Motor de extração nativo em Dart (YouTube) — sem runtime Python no APK.
   # v3: aceita HttpClient customizado (User-Agent real) contra rate-limit.
   youtube_explode_dart: ^3.1.0

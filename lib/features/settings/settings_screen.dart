@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -237,17 +236,6 @@ class SettingsScreen extends StatelessWidget {
                       onTap: () => Navigator.pop(sheet, volume.path),
                     ),
                   ),
-                const SizedBox(height: 12),
-                NeuButton(
-                  label: t.chooseFolder,
-                  icon: Icons.folder_open_rounded,
-                  expand: true,
-                  onTap: () async {
-                    final String? dir =
-                        await FilePicker.platform.getDirectoryPath();
-                    if (sheet.mounted) Navigator.pop(sheet, dir ?? '');
-                  },
-                ),
               ],
             ),
           ),

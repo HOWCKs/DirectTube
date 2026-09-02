@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>DirectTube — Sistema de Design Neumórfico (referência visual)</title>
+<style>
+  /* ============================================================
+     DIRECTTUBE — DESIGN TOKENS (contrato visual para o Flutter)
+     Fonte única de verdade. Os widgets em Dart devem espelhar
+     exatamente estes valores.
+     ============================================================ */
+  :root {
+    /* Superfície: única cor de fundo em todo o app */
+    --surface: #e0e5ec;
+
+    /* Sombras: duas fontes de luz, sempre juntas */
+    --shadow-dark: #bec3c9;   /* luz inferior-direita */
+    --shadow-light: #ffffff;  /* luz superior-esquerda */
+
+    /* Elevação padrão (elementos "levantados") */
+    --elev-1: 9px 9px 18px var(--shadow-dark), -9px -9px 18px var(--shadow-light);
+    /* Elevação suave (elementos menores / ícones) */
+    --elev-2: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    /* Elevação forte (FAB, modal) */
+    --elev-3: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
+    /* Estado pressionado / ativo (inset) */
+    --press-1: inset 9px 9px 18px var(--shadow-dark), inset -9px -9px 18px var(--shadow-light);
+    --press-2: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+
+    /* Raios: apenas entre 16px e 24px */
+    --radius-s: 16px;
+    --radius-m: 20px;
+    --radius-l: 24px;
+
+    /* Acento único (estados ativos) */
+    --accent: #4d6bfe;
+    --accent-soft: rgba(77, 107, 254, 0.14);
+
+    /* Texto: escuro e de alto contraste */
+    --text: #2d3436;
+    --text-muted: #636e72;
+
+    /* Movimento */
+    --ease: cubic-bezier(0.32, 0.72, 0.24, 1);
+    --dur: 140ms;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--surface);          /* fundo uniforme em toda parte */
+    color: var(--text);
+    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 1180px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 28px; margin-bottom: 36px; }
+  .page-head h1 { margin: 0; font-size: 30px; letter-spacing: -0.6px; font-weight: 700; }
+  .page-head p { margin: 6px 0 0; color: var(--text-muted); font-size: 14.5px; max-width: 620px; line-height: 1.55; }
+  .badge {
+    margin-left: auto; padding: 12px 18px; border-radius: var(--radius-s);
+    background: var(--surface); box-shadow: var(--elev-2);
+    font-size: 12.5px; font-weight: 600; letter-spacing: .3px; color: var(--text);
+  }
+  .badge b { color: var(--accent); }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 40px; align-items: start; }
+  @media (max-width: 940px) { .layout { grid-template-columns: 1fr; } }
+
+  /* ---------- Primitivas neumórficas ---------- */
+  .neu {
+    background: var(--surface);
+    border-radius: var(--radius-m);
+    box-shadow: var(--elev-1);
+    transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .neu-press:active, .neu.is-active { box-shadow: var(--press-1); transform: scale(0.985); }
+
+  .card { padding: 22px; }
+  .card + .card { margin-top: 26px; }
+  .card-title { font-size: 13px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 18px; }
+
+  /* Botão */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 15px 24px; border: 0; cursor: pointer;
+    background: var(--surface); color: var(--text);
+    font: inherit; font-size: 15px; font-weight: 600;
+    border-radius: var(--radius-s);
+    box-shadow: var(--elev-2);
+    transition: box-shadow var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .btn:active { box-shadow: var(--press-2); transform: scale(0.97); }
+  .btn.is-active { box-shadow: var(--press-2); color: var(--accent); }
+  .btn svg { width: 18px; height: 18px; }
+
+  /* Chip de formato */
+  .chips { display: flex; flex-wrap: wrap; gap: 12px; }
+  .chip {
+    padding: 10px 16px; border-radius: var(--radius-s); background: var(--surface);
+    box-shadow: var(--elev-2); font-size: 13.5px; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; border: 0; font-family: inherit;
+    transition: box-shadow var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .chip:active { box-shadow: var(--press-2); }
+  .chip.is-active { box-shadow: var(--press-2); color: var(--accent); }
+
+  /* Toggle */
+  .toggle { width: 62px; height: 34px; border-radius: var(--radius-s); background: var(--surface); box-shadow: var(--press-2); position: relative; cursor: pointer; border: 0; padding: 0; }
+  .toggle .knob {
+    position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--surface); box-shadow: var(--elev-2);
+    transition: transform 180ms var(--ease), background var(--dur) var(--ease);
+  }
+  .toggle.is-active .knob { transform: translateX(28px); background: var(--accent); }
+
+  /* Campo de busca */
+  .field {
+    display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 20px;
+    border-radius: var(--radius-l); background: var(--surface); box-shadow: var(--press-1);
+  }
+  .field input {
+    flex: 1; border: 0; background: transparent; outline: none; padding: 16px 0;
+    font: inherit; font-size: 15px; color: var(--text);
+  }
+  .field input::placeholder { color: var(--text-muted); }
+  .icon-btn {
+    width: 46px; height: 46px; border-radius: var(--radius-s); border: 0; cursor: pointer;
+    background: var(--surface); box-shadow: var(--elev-2); color: var(--text);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: box-shadow var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .icon-btn:active { box-shadow: var(--press-2); }
+  .icon-btn.is-active { box-shadow: var(--press-2); color: var(--accent); }
+  .icon-btn svg { width: 20px; height: 20px; }
+
+  /* ---------- Moldura do telefone ---------- */
+  .phone-wrap { position: sticky; top: 32px; }
+  .phone {
+    width: 390px; max-width: 100%; margin: 0 auto; padding: 14px;
+    border-radius: 44px; background: var(--surface); box-shadow: var(--elev-3);
+  }
+  .screen {
+    position: relative; height: 740px; border-radius: 32px; overflow: hidden;
+    background: var(--surface); box-shadow: var(--press-1);
+    display: flex; flex-direction: column;
+  }
+  .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 4px; font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .screen-body { flex: 1; overflow-y: auto; padding: 10px 20px 24px; scrollbar-width: none; }
+  .screen-body::-webkit-scrollbar { display: none; }
+  .view { display: none; animation: fade 200ms var(--ease); }
+  .view.is-current { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .app-title { font-size: 25px; font-weight: 800; letter-spacing: -0.6px; margin: 12px 2px 18px; }
+  .app-title span { color: var(--accent); }
+
+  /* Card de vídeo */
+  .video-card { display: flex; gap: 14px; padding: 14px; border-radius: var(--radius-m); background: var(--surface); box-shadow: var(--elev-1); }
+  .video-card + .video-card { margin-top: 16px; }
+  .thumb {
+    width: 96px; height: 68px; border-radius: var(--radius-s); flex: 0 0 auto;
+    background: linear-gradient(135deg, #d6dbe3, #eef1f6);
+    box-shadow: var(--press-2); display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+  }
+  .thumb svg { width: 22px; height: 22px; }
+  .meta { min-width: 0; flex: 1; }
+  .meta h4 { margin: 2px 0 6px; font-size: 14px; line-height: 1.35; font-weight: 700; }
+  .meta p { margin: 0; font-size: 12px; color: var(--text-muted); }
+  .dl-btn {
+    align-self: center; width: 42px; height: 42px; border-radius: var(--radius-s); border: 0; cursor: pointer;
+    background: var(--surface); box-shadow: var(--elev-2); color: var(--text); flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    transition: box-shadow var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .dl-btn:active { box-shadow: var(--press-2); }
+  .dl-btn.is-active { box-shadow: var(--press-2); color: var(--accent); }
+  .dl-btn svg { width: 18px; height: 18px; }
+
+  /* Progresso */
+  .progress-track { height: 8px; border-radius: var(--radius-s); background: var(--surface); box-shadow: var(--press-2); overflow: hidden; margin-top: 10px; }
+  .progress-fill { height: 100%; border-radius: var(--radius-s); background: var(--accent); transition: width 300ms linear; }
+  .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .row-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius-m); background: var(--surface); box-shadow: var(--elev-1); }
+  .row-item + .row-item { margin-top: 14px; }
+  .row-item .label { flex: 1; min-width: 0; }
+  .row-item .label strong { display: block; font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .row-item .label span { font-size: 12px; color: var(--text-muted); }
+
+  /* Player */
+  .art {
+    height: 210px; border-radius: var(--radius-l); margin: 18px 0 24px;
+    background: linear-gradient(135deg, #d6dbe3, #f2f5f9);
+    box-shadow: var(--elev-1); display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+  }
+  .art svg { width: 54px; height: 54px; }
+  .player-ctrls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 24px; }
+  .play {
+    width: 74px; height: 74px; border-radius: var(--radius-l); border: 0; cursor: pointer;
+    background: var(--surface); box-shadow: var(--elev-1); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .play:active { box-shadow: var(--press-1); transform: scale(0.96); }
+  .play svg { width: 26px; height: 26px; }
+  .seek { height: 8px; border-radius: var(--radius-s); background: var(--surface); box-shadow: var(--press-2); position: relative; margin: 22px 0 8px; }
+  .seek > i { position: absolute; inset: 0 auto 0 0; width: 42%; background: var(--accent); border-radius: var(--radius-s); }
+  .seek > b { position: absolute; left: 42%; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--surface); box-shadow: var(--elev-2); }
+  .times { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
+
+  /* Bottom nav */
+  .tabbar { display: flex; justify-content: space-around; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); margin: 0 14px 14px; border-radius: var(--radius-l); background: var(--surface); box-shadow: var(--elev-1); }
+  .tab {
+    flex: 1; border: 0; background: transparent; cursor: pointer; padding: 10px 0 8px; border-radius: var(--radius-s);
+    color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 5px;
+    font: inherit; font-size: 10.5px; font-weight: 700; letter-spacing: .2px;
+    transition: box-shadow var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .tab svg { width: 21px; height: 21px; }
+  .tab:active { box-shadow: var(--press-2); }
+  .tab.is-active { box-shadow: var(--press-2); color: var(--accent); }
+
+  /* Tabela de tokens */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 11px 8px; border-bottom: 1px solid rgba(45,52,54,0.07); }
+  th { font-size: 11.5px; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); }
+  td code { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 12px; color: var(--text); background: rgba(77,107,254,0.08); padding: 2px 6px; border-radius: 6px; }
+  .swatch { width: 34px; height: 34px; border-radius: 10px; display: inline-block; vertical-align: middle; }
+  .note { margin-top: 22px; padding: 16px 18px; border-radius: var(--radius-m); background: var(--surface); box-shadow: var(--press-2); font-size: 13px; line-height: 1.6; color: var(--text-muted); }
+  .note strong { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="page-head">
+    <div>
+      <h1>DirectTube <span style="color:var(--accent)">·</span> Sistema de Design</h1>
+      <p>Referência visual interativa do neumorfismo (soft UI). Esta página é o contrato de design que os
+         widgets Flutter devem reproduzir pixel a pixel. Toque nos controles: há feedback tátil
+         (<code>navigator.vibrate</code>) em dispositivos Android.</p>
+    </div>
+    <div class="badge">Fundo único <b>#e0e5ec</b> · Acento <b>#4d6bfe</b></div>
+  </header>
+
+  <div class="layout">
+
+    <!-- ================= ESQUERDA: tokens ================= -->
+    <div>
+      <section class="card neu">
+        <h3 class="card-title">Tokens de cor</h3>
+        <table>
+          <thead><tr><th>Token</th><th>Valor</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td><span class="swatch" style="background:#e0e5ec;box-shadow:var(--elev-2)"></span></td><td><code>#e0e5ec</code></td><td>Fundo e superfície de TODOS os cartões e controles</td></tr>
+            <tr><td><span class="swatch" style="background:#bec3c9"></span></td><td><code>#bec3c9</code></td><td>Sombra inferior-direita <code>9px 9px 18px</code></td></tr>
+            <tr><td><span class="swatch" style="background:#ffffff;box-shadow:var(--elev-2)"></span></td><td><code>#ffffff</code></td><td>Sombra superior-esquerda <code>-9px -9px 18px</code></td></tr>
+            <tr><td><span class="swatch" style="background:#4d6bfe"></span></td><td><code>#4d6bfe</code></td><td>Acento único — somente estados ativos</td></tr>
+            <tr><td><span class="swatch" style="background:#2d3436"></span></td><td><code>#2d3436</code></td><td>Texto principal, alto contraste</td></tr>
+            <tr><td><span class="swatch" style="background:#636e72"></span></td><td><code>#636e72</code></td><td>Texto secundário (≥ 4.5:1 de contraste)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card neu">
+        <h3 class="card-title">Elevação e estados</h3>
+        <table>
+          <thead><tr><th>Estado</th><th>Sombra</th></tr></thead>
+          <tbody>
+            <tr><td>Levantado (padrão)</td><td><code>9px 9px 18px #bec3c9, -9px -9px 18px #ffffff</code></td></tr>
+            <tr><td>Levantado suave</td><td><code>5px 5px 10px #bec3c9, -5px -5px 10px #ffffff</code></td></tr>
+            <tr><td>Pressionado / ativo</td><td><code>inset 9px 9px 18px #bec3c9, inset -9px -9px 18px #ffffff</code></td></tr>
+            <tr><td>Raio</td><td><code>16px · 20px · 24px</code> (nunca fora dessa faixa)</td></tr>
+            <tr><td>Transição</td><td><code>140ms cubic-bezier(0.32, 0.72, 0.24, 1)</code></td></tr>
+          </tbody>
+        </table>
+        <div class="note">
+          <strong>Regra de ouro:</strong> nenhum elemento tem borda, contorno ou cor de fundo diferente da superfície.
+          A profundidade vem exclusivamente do par de sombras. O acento <code>#4d6bfe</code> aparece só em
+          conteúdo ativo (ícone, barra de progresso, indicador) — nunca como preenchimento de cartão.
+        </div>
+      </section>
+
+      <section class="card neu">
+        <h3 class="card-title">Controles — teste tátil</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+          <button class="btn" data-haptic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Baixar</button>
+          <button class="btn is-active" data-haptic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.6"/><circle cx="16.5" cy="16" r="2.6"/></svg>MP3</button>
+          <button class="toggle is-active" data-haptic aria-label="Alternar"><span class="knob"></span></button>
+          <button class="toggle" data-haptic aria-label="Alternar"><span class="knob"></span></button>
+        </div>
+        <div class="chips" style="margin-top:16px">
+          <button class="chip is-active" data-haptic>1080p</button>
+          <button class="chip" data-haptic>720p</button>
+          <button class="chip" data-haptic>480p</button>
+          <button class="chip" data-haptic>M4A 128k</button>
+          <button class="chip" data-haptic>MP3 320k</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= DIREITA: telefone ================= -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="screen">
+          <div class="status-bar"><span>9:41</span><span>DirectTube</span><span>100%</span></div>
+
+          <div class="screen-body">
+
+            <!-- INÍCIO -->
+            <section class="view is-current" data-view="home">
+              <h2 class="app-title">Direct<span>Tube</span></h2>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#636e72" stroke-width="2.2" stroke-linecap="round" style="width:19px;height:19px"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <input placeholder="Colar link ou buscar" />
+                <button class="icon-btn is-active" data-haptic aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg></button>
+              </div>
+
+              <h3 class="card-title" style="margin:26px 2px 14px">Em alta</h3>
+
+              <div class="video-card">
+                <div class="thumb"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="meta">
+                  <h4>Como construir um app Flutter do zero</h4>
+                  <p>12:48 · 1,2 mi de views</p>
+                </div>
+                <button class="dl-btn" data-haptic aria-label="Baixar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg></button>
+              </div>
+
+              <div class="video-card">
+                <div class="thumb"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="meta">
+                  <h4>Lo-fi para estudar — mix de 3 horas</h4>
+                  <p>3:01:22 · 840 mil views</p>
+                </div>
+                <button class="dl-btn is-active" data-haptic aria-label="Baixando"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></button>
+              </div>
+
+              <div class="video-card">
+                <div class="thumb"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="meta">
+                  <h4>Neumorfismo na prática: sombras e profundidade</h4>
+                  <p>08:15 · 210 mil views</p>
+                </div>
+                <button class="dl-btn" data-haptic aria-label="Baixar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg></button>
+              </div>
+            </section>
+
+            <!-- DOWNLOADS -->
+            <section class="view" data-view="downloads">
+              <h2 class="app-title">Down<span>loads</span></h2>
+
+              <div class="row-item">
+                <div class="label">
+                  <strong>Lo-fi para estudar — mix de 3 horas</strong>
+                  <span>M4A 128k · 168 MB · 4,2 MB/s</span>
+                  <div class="progress-track"><div class="progress-fill" id="p1" style="width:42%"></div></div>
+                </div>
+                <button class="icon-btn is-active" data-haptic aria-label="Pausar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5h3v14H8zM13 5h3v14h-3z"/></svg></button>
+              </div>
+
+              <div class="row-item">
+                <div class="label">
+                  <strong>Como construir um app Flutter do zero</strong>
+                  <span>MP4 1080p · 240 MB · aguardando na fila</span>
+                  <div class="progress-track"><div class="progress-fill" style="width:8%"></div></div>
+                </div>
+                <button class="icon-btn" data-haptic aria-label="Iniciar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+              </div>
+
+              <div class="row-item">
+                <div class="label">
+                  <strong>Neumorfismo na prática</strong>
+                  <span>MP4 720p · 88 MB · concluído</span>
+                  <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+                </div>
+                <button class="icon-btn" data-haptic aria-label="Abrir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 20h16M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/></svg></button>
+              </div>
+
+              <button class="btn" data-haptic style="width:100%;margin-top:20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Novo download</button>
+            </section>
+
+            <!-- PLAYER -->
+            <section class="view" data-view="player">
+              <h2 class="app-title">Tocando <span>agora</span></h2>
+              <div class="art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.6"/><circle cx="16.5" cy="16" r="2.6"/></svg></div>
+              <div class="row-between"><div><strong style="font-size:16px">Lo-fi para estudar</strong><p style="margin:4px 0 0;font-size:12.5px;color:var(--text-muted)">Mix de 3 horas · M4A 128k</p></div>
+                <button class="icon-btn" data-haptic aria-label="Favoritar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20s-7-4.4-7-9.3A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7 2.7C19 15.6 12 20 12 20z"/></svg></button>
+              </div>
+              <div class="seek"><i></i><b></b></div>
+              <div class="times"><span>1:17:04</span><span>3:01:22</span></div>
+              <div class="player-ctrls">
+                <button class="icon-btn" data-haptic aria-label="Anterior"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 6h2v12H7zM19 6v12l-9-6z"/></svg></button>
+                <button class="play" data-haptic aria-label="Tocar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+                <button class="icon-btn" data-haptic aria-label="Próxima"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 6h2v12h-2zM5 6l9 6-9 6z"/></svg></button>
+              </div>
+            </section>
+
+            <!-- BIBLIOTECA -->
+            <section class="view" data-view="library">
+              <h2 class="app-title">Biblio<span>teca</span></h2>
+              <div class="chips" style="margin-bottom:18px">
+                <button class="chip is-active" data-haptic>Músicas</button>
+                <button class="chip" data-haptic>Vídeos</button>
+                <button class="chip" data-haptic>Playlists</button>
+              </div>
+              <div class="row-item"><div class="thumb" style="width:56px;height:56px"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="label"><strong>Lo-fi para estudar</strong><span>M4A · 168 MB</span></div>
+                <button class="dl-btn" data-haptic aria-label="Tocar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button></div>
+              <div class="row-item"><div class="thumb" style="width:56px;height:56px"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="label"><strong>Neumorfismo na prática</strong><span>MP4 720p · 88 MB</span></div>
+                <button class="dl-btn" data-haptic aria-label="Tocar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button></div>
+            </section>
+
+            <!-- AJUSTES -->
+            <section class="view" data-view="settings">
+              <h2 class="app-title">A<span>justes</span></h2>
+              <div class="row-item"><div class="label"><strong>Baixar só em Wi-Fi</strong><span>Evita uso de dados móveis</span></div>
+                <button class="toggle is-active" data-haptic aria-label="Alternar"><span class="knob"></span></button></div>
+              <div class="row-item"><div class="label"><strong>Resposta tátil</strong><span>Vibração ao tocar controles</span></div>
+                <button class="toggle is-active" data-haptic aria-label="Alternar"><span class="knob"></span></button></div>
+              <div class="row-item"><div class="label"><strong>Baixar em segundo plano</strong><span>Fila continua com a tela bloqueada</span></div>
+                <button class="toggle" data-haptic aria-label="Alternar"><span class="knob"></span></button></div>
+              <div class="row-item"><div class="label"><strong>Pasta de destino</strong><span>Download/DirectTube</span></div>
+                <button class="icon-btn" data-haptic aria-label="Abrir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
+            </section>
+
+          </div>
+
+          <nav class="tabbar">
+            <button class="tab is-active" data-haptic data-go="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Início</button>
+            <button class="tab" data-haptic data-go="downloads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Downloads</button>
+            <button class="tab" data-haptic data-go="player"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Player</button>
+            <button class="tab" data-haptic data-go="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 5h4v15H4zM10 5h4v15h-4zM16.5 5.6l3.8 1-3.4 13.2-3.8-1z"/></svg>Biblioteca</button>
+            <button class="tab" data-haptic data-go="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 14a2 2 0 0 1 0-4 1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3.6V3a2 2 0 1 1 4 0v.1A1.7 1.7 0 0 0 17 4.6a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 10a2 2 0 0 1 0 4z"/></svg>Ajustes</button>
+          </nav>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Navegação entre telas
+  const views = document.querySelectorAll('.view');
+  const tabs = document.querySelectorAll('.tab');
+  function go(name) {
+    views.forEach(v => v.classList.toggle('is-current', v.dataset.view === name));
+    tabs.forEach(t => t.classList.toggle('is-active', t.dataset.go === name));
+  }
+  tabs.forEach(t => t.addEventListener('click', () => go(t.dataset.go)));
+
+  // Toggles e chips (estado ativo = inset + acento)
+  document.querySelectorAll('.toggle').forEach(t =>
+    t.addEventListener('click', () => t.classList.toggle('is-active')));
+  document.querySelectorAll('.chips').forEach(group =>
+    group.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(x => x.classList.remove('is-active'));
+      c.classList.add('is-active');
+    })));
+  document.querySelectorAll('.dl-btn').forEach(b =>
+    b.addEventListener('click', () => b.classList.toggle('is-active')));
+
+  // Resposta tátil (Android) — 12ms leve, 24ms para alternar estado
+  let haptics = true;
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-haptic]');
+    if (!el || !haptics) return;
+    const strong = el.classList.contains('toggle') || el.classList.contains('tab');
+    if (navigator.vibrate) navigator.vibrate(strong ? 24 : 12);
+  }, true);
+
+  // Progresso simulado do download em andamento
+  let p = 42;
+  setInterval(() => {
+    p = p >= 98 ? 42 : p + 0.6;
+    const bar = document.getElementById('p1');
+    if (bar) bar.style.width = p + '%';
+  }, 400);
+</script>
+</body>
+</html>

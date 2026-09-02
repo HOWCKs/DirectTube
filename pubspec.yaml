@@ -1,0 +1,35 @@
+name: directtube
+description: "DirectTube — downloader de vídeo e música com interface neumórfica (soft UI)."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Rede e persistência
+  http: ^1.2.0
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.0
+
+  # Motor de extração nativo em Dart (YouTube) — sem runtime Python no APK.
+  # O motor yt-dlp embarcado entra como implementação alternativa da mesma
+  # interface (lib/data/engine/download_engine.dart).
+  youtube_explode_dart: ^2.0.0
+
+  # Reprodução local dos arquivos baixados
+  just_audio: ^0.9.40
+  video_player: ^2.9.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

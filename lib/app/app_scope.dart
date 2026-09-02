@@ -46,7 +46,7 @@ class AppScope extends InheritedNotifier<DownloadManager> {
 
   static DownloadManager downloads(BuildContext context) => of(context).notifier!;
 
-  static AppSettings settings(BuildContext context) => of(context).settings;
+  static AppSettings settingsOf(BuildContext context) => of(context).settings;
 
   static SearchService searchOf(BuildContext context) => of(context).search;
 

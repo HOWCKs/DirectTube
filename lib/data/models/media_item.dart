@@ -1,4 +1,4 @@
-import '../core/link_parser.dart';
+import '../../core/link_parser.dart';
 
 /// Mídia resolvida por um motor (metadados, antes de qualquer download).
 class MediaItem {

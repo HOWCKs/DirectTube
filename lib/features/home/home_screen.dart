@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (BuildContext sheetContext) => FormatSheet(
         item: item,
         manager: AppScope.downloads(context),
-        preferAudio: AppScope.settings(context).preferAudio,
+        preferAudio: AppScope.settingsOf(context).preferAudio,
       ),
     );
   }

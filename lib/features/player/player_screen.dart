@@ -335,7 +335,7 @@ class _VideoSurfaceState extends State<VideoSurface> {
                 final Duration target = _controller.value.position -
                     const Duration(seconds: 10);
                 _controller
-                    .seek(target < Duration.zero ? Duration.zero : target);
+                    .seekTo(target < Duration.zero ? Duration.zero : target);
               },
             ),
             const SizedBox(width: 18),
@@ -370,7 +370,7 @@ class _VideoSurfaceState extends State<VideoSurface> {
               icon: Icons.forward_10_rounded,
               size: 56,
               iconSize: 24,
-              onTap: () => _controller.seek(_controller.value.position +
+              onTap: () => _controller.seekTo(_controller.value.position +
                   const Duration(seconds: 10)),
             ),
           ],

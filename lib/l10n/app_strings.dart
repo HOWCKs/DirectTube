@@ -81,6 +81,12 @@ abstract class AppStrings {
   String get legalNotice;
   String get version;
 
+  // Armazenamento
+  String get storage;
+  String get storageHint;
+  String get defaultStorage;
+  String get chooseFolder;
+
   // Erros
   String get invalidLink;
   String get noEngine;
@@ -219,6 +225,15 @@ class PtBrStrings extends AppStrings {
   String get version => 'Versão';
 
   @override
+  String get storage => 'Local de salvamento';
+  @override
+  String get storageHint => 'Onde músicas e vídeos são gravados';
+  @override
+  String get defaultStorage => 'Padrão do app';
+  @override
+  String get chooseFolder => 'Escolher pasta…';
+
+  @override
   String get invalidLink => 'Não reconheci esse link.';
   @override
   String get noEngine => 'Nenhum motor disponível para este link.';
@@ -348,6 +363,15 @@ class EnStrings extends AppStrings {
       'terms of service and copyright.';
   @override
   String get version => 'Version';
+
+  @override
+  String get storage => 'Save location';
+  @override
+  String get storageHint => 'Where music and videos are stored';
+  @override
+  String get defaultStorage => 'App default';
+  @override
+  String get chooseFolder => 'Choose folder…';
 
   @override
   String get invalidLink => 'I could not recognize that link.';

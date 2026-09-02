@@ -38,6 +38,7 @@ class _DirectTubeAppState extends State<DirectTubeApp> {
   void initState() {
     super.initState();
     Haptics.enabled = _settings.hapticsEnabled;
+    widget.manager.setStoragePath(_settings.storagePath);
   }
 
   @override
@@ -49,6 +50,7 @@ class _DirectTubeAppState extends State<DirectTubeApp> {
   Future<void> _update(AppSettings next) async {
     setState(() => _settings = next);
     Haptics.enabled = next.hapticsEnabled;
+    widget.manager.setStoragePath(next.storagePath);
     await widget.settingsStore.save(next);
   }
 

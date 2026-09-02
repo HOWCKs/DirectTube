@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../app/app_scope.dart';
 import '../../core/app_info.dart';
@@ -152,6 +156,20 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ),
+        NeuSectionTitle(t.storage),
+        _gap(
+          NeuListRow(
+            title: t.storage,
+            subtitle: settings.storagePath ?? t.defaultStorage,
+            onTap: () => _pickStorage(context, settings, update, t),
+            trailing: NeuIconButton(
+              icon: Icons.folder_rounded,
+              size: 42,
+              iconSize: 18,
+              onTap: () => _pickStorage(context, settings, update, t),
+            ),
+          ),
+        ),
         NeuSectionTitle(t.engines),
         for (final DownloadEngine engine
             in AppScope.downloads(context).registry.engines)
@@ -182,6 +200,68 @@ class SettingsScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _pickStorage(BuildContext context, AppSettings settings,
+      ValueChanged<AppSettings> update, AppStrings t) async {
+    final List<Directory>? found = await getExternalStorageDirectories();
+    final List<Directory> volumes = found ?? <Directory>[];
+    if (!context.mounted) return;
+
+    final String? picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: NeuPalette.of(context).surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(NeuTokens.radiusL)),
+      ),
+      builder: (BuildContext sheet) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                NeuListRow(
+                  title: t.defaultStorage,
+                  subtitle: t.storageHint,
+                  onTap: () => Navigator.pop(sheet, ''),
+                ),
+                for (final Directory volume in volumes)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: NeuListRow(
+                      title: _volumeLabel(volume.path),
+                      subtitle: volume.path,
+                      onTap: () => Navigator.pop(sheet, volume.path),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                NeuButton(
+                  label: t.chooseFolder,
+                  icon: Icons.folder_open_rounded,
+                  expand: true,
+                  onTap: () async {
+                    final String? dir =
+                        await FilePicker.platform.getDirectoryPath();
+                    if (sheet.mounted) Navigator.pop(sheet, dir ?? '');
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (picked == null) return;
+    update(settings.copyWith(storagePath: picked.isEmpty ? null : picked));
+  }
+
+  String _volumeLabel(String path) {
+    final bool sd = path.contains('external') && !path.contains('emulated');
+    return sd ? 'Cartão SD' : 'Armazenamento interno';
   }
 
   Widget _gap(Widget child) => Padding(

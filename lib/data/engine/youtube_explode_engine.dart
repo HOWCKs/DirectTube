@@ -3,25 +3,48 @@ import 'dart:io';
 
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
+import '../../core/errors.dart';
 import '../../core/link_parser.dart';
 import '../models/format_option.dart';
 import '../models/media_item.dart';
 import 'download_engine.dart';
 
+/// Cliente HTTP com cara de navegador real (reduz rate-limit do YouTube).
+class _BrowserHttpClient extends YoutubeHttpClient {
+  _BrowserHttpClient() : super();
+
+  @override
+  Map<String, String> get headers => <String, String>{
+        ...super.headers,
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 8) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 '
+            'Mobile Safari/537.36',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+      };
+}
+
 /// Motor YouTube implementado 100% em Dart (`youtube_explode_dart`).
 ///
-/// Vantagens: nenhum runtime Python no APK, início instantâneo, sem bridge
-/// nativa. Limitação honesta: formatos acima de 720p exigem juntar vídeo e
-/// áudio (muxing), o que depende do módulo FFmpeg — por isso esses formatos
-/// são expostos com `needsMuxing: true` e a UI os mostra como indisponíveis.
+/// Resiliência contra rate-limit (erro visto em IP de operadora móvel):
+///   * `User-Agent` de navegador real;
+///   * retry com backoff em `RequestLimitExceededException`/transientes;
+///   * cache de manifesto por vídeo (abrir o painel 2x não refaz pedidos).
+///
+/// Limitação honesta: acima de 720p o YouTube serve vídeo e áudio separados;
+/// juntar os dois pede FFmpeg, então esses formatos vêm `needsMuxing: true`
+/// e a UI os mostra como indisponíveis.
 class YoutubeExplodeEngine implements DownloadEngine {
   YoutubeExplodeEngine({YoutubeExplode? client})
-      : _client = client ?? YoutubeExplode();
+      : _client = client ?? YoutubeExplode(httpClient: _BrowserHttpClient());
 
   final YoutubeExplode _client;
 
-  /// Intervalo mínimo entre emissões de progresso (evita afogar a UI).
+  static const int _maxAttempts = 3;
   static const Duration _throttle = Duration(milliseconds: 150);
+  static const Duration _manifestTtl = Duration(minutes: 5);
+
+  final Map<String, _CachedManifest> _manifestCache =
+      <String, _CachedManifest>{};
 
   @override
   String get id => 'youtube-explode';
@@ -40,25 +63,34 @@ class YoutubeExplodeEngine implements DownloadEngine {
   @override
   Future<bool> isAvailable() async => true;
 
-  /// Busca real no YouTube (não usa API paga nem chave).
-  Future<List<MediaItem>> search(String query, {int limit = 24}) async {
-    if (query.trim().isEmpty) return const <MediaItem>[];
-    final List<Video> results =
-        await _client.search.search(query, filter: TypeFilters.video);
-    return results
-        .take(limit)
-        .map((Video video) => MediaItem(
-              id: video.id.value,
-              title: video.title,
-              sourceUrl: 'https://www.youtube.com/watch?v=${video.id.value}',
-              host: MediaHost.youtube,
-              author: video.author,
-              duration: video.duration,
-              thumbnailUrl: video.thumbnails.mediumResUrl,
-              engineId: id,
-            ))
-        .toList(growable: false);
+  /// Retry com backoff para erros transientes e de limite de pedidos.
+  Future<T> _retry<T>(Future<T> Function() operation) async {
+    Object? lastError;
+    for (int attempt = 0; attempt < _maxAttempts; attempt++) {
+      try {
+        return await operation();
+      } on RequestLimitExceededException catch (error) {
+        lastError = error;
+        await Future<void>.delayed(
+            Duration(milliseconds: 800 * (attempt + 1) * (attempt + 1)));
+      } on TransientFailureException catch (error) {
+        lastError = error;
+        await Future<void>.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+      }
+    }
+    throw EngineException(friendlyError(lastError ?? 'Falha de rede.'));
   }
+
+  MediaItem _toItem(Video video, String sourceUrl) => MediaItem(
+        id: video.id.value,
+        title: video.title,
+        sourceUrl: sourceUrl,
+        host: MediaHost.youtube,
+        author: video.author,
+        duration: video.duration,
+        thumbnailUrl: video.thumbnails.mediumResUrl,
+        engineId: id,
+      );
 
   @override
   Future<MediaItem> resolve(String url) async {
@@ -67,28 +99,46 @@ class YoutubeExplodeEngine implements DownloadEngine {
     if (videoId == null) {
       throw const EngineException('Não encontrei um ID de vídeo nesse link.');
     }
+    final Video video = await _retry(() => _client.videos.get(videoId));
+    return _toItem(video, url);
+  }
 
-    final Video video = await _client.videos.get(videoId);
-    return MediaItem(
-      id: video.id.value,
-      title: video.title,
-      sourceUrl: url,
-      host: MediaHost.youtube,
-      author: video.author,
-      duration: video.duration,
-      thumbnailUrl: video.thumbnails.mediumResUrl,
-      engineId: id,
-    );
+  /// Busca real no YouTube. Retorna a primeira página (rolável via [moreResults]).
+  /// Quem chama garante `query` não vazia.
+  Future<VideoSearchList> searchPage(String query) {
+    return _retry(() => _client.search.search(query, filter: TypeFilters.video));
+  }
+
+  /// Próxima página da busca (rolagem infinita). `null` quando acabou.
+  Future<VideoSearchList?> moreResults(VideoSearchList current) {
+    return _retry(() => current.nextPage());
+  }
+
+  List<MediaItem> mapResults(VideoSearchList page, {int limit = 30}) => page
+      .take(limit)
+      .map((Video video) => _toItem(
+          video, 'https://www.youtube.com/watch?v=${video.id.value}'))
+      .toList(growable: false);
+
+  Future<StreamManifest> _manifest(String videoId) async {
+    final _CachedManifest? cached = _manifestCache[videoId];
+    if (cached != null &&
+        DateTime.now().difference(cached.at) < _manifestTtl) {
+      return cached.manifest;
+    }
+    final StreamManifest manifest = await _retry(
+        () => _client.videos.streamsClient.getManifest(videoId));
+    _manifestCache[videoId] =
+        _CachedManifest(manifest: manifest, at: DateTime.now());
+    return manifest;
   }
 
   @override
   Future<List<FormatOption>> formatsFor(MediaItem item) async {
-    final StreamManifest manifest =
-        await _client.videos.streamsClient.getManifest(item.id);
+    final StreamManifest manifest = await _manifest(item.id);
 
     final List<FormatOption> options = <FormatOption>[];
 
-    // Progressivos (vídeo + áudio no mesmo arquivo): prontos para salvar.
     for (final MuxedStreamInfo stream in manifest.muxed) {
       final int? height = stream.videoResolution.height;
       options.add(FormatOption(
@@ -102,7 +152,6 @@ class YoutubeExplodeEngine implements DownloadEngine {
       ));
     }
 
-    // Só áudio: M4A/WebM prontos para a biblioteca de música.
     for (final AudioOnlyStreamInfo stream in manifest.audioOnly) {
       final String ext = stream.container.name;
       final int kbps = stream.bitrate.kiloBitsPerSecond.round();
@@ -116,7 +165,6 @@ class YoutubeExplodeEngine implements DownloadEngine {
       ));
     }
 
-    // Alta resolução (1080p+): vídeo separado do áudio -> precisa de FFmpeg.
     for (final VideoOnlyStreamInfo stream in manifest.videoOnly) {
       final int? height = stream.videoResolution.height;
       if (height == null || height <= 720) continue;
@@ -132,8 +180,13 @@ class YoutubeExplodeEngine implements DownloadEngine {
       ));
     }
 
-    options.sort((FormatOption a, FormatOption b) =>
-        b.sortKey.compareTo(a.sortKey));
+    if (options.isEmpty) {
+      throw const EngineException(
+        'Este conteúdo não expõe formatos baixáveis agora. Tente novamente.',
+      );
+    }
+    options.sort(
+        (FormatOption a, FormatOption b) => b.sortKey.compareTo(a.sortKey));
     return options;
   }
 
@@ -150,8 +203,7 @@ class YoutubeExplodeEngine implements DownloadEngine {
       );
     }
 
-    final StreamManifest manifest =
-        await _client.videos.streamsClient.getManifest(item.id);
+    final StreamManifest manifest = await _manifest(item.id);
 
     final int? tag = int.tryParse(format.id);
     StreamInfo? info;
@@ -175,7 +227,8 @@ class YoutubeExplodeEngine implements DownloadEngine {
     DateTime lastEmit = DateTime.fromMillisecondsSinceEpoch(0);
 
     try {
-      await for (final List<int> chunk in _client.videos.streamsClient.get(info)) {
+      await for (final List<int> chunk
+          in _client.videos.streamsClient.get(info)) {
         if (token?.isCanceled ?? false) {
           throw const DownloadCanceledException();
         }
@@ -194,15 +247,13 @@ class YoutubeExplodeEngine implements DownloadEngine {
       }
       await sink.flush();
       await sink.close();
+    } on RequestLimitExceededException catch (error) {
+      await sink.close();
+      await _deletePartial(file);
+      throw EngineException(friendlyError(error));
     } catch (_) {
       await sink.close();
-      if (file.existsSync()) {
-        try {
-          await file.delete();
-        } catch (_) {
-          // Arquivo parcial pode já ter sido removido.
-        }
-      }
+      await _deletePartial(file);
       rethrow;
     }
 
@@ -213,6 +264,16 @@ class YoutubeExplodeEngine implements DownloadEngine {
     );
   }
 
+  Future<void> _deletePartial(File file) async {
+    if (file.existsSync()) {
+      try {
+        await file.delete();
+      } catch (_) {
+        // Parcial já removido.
+      }
+    }
+  }
+
   double _speed(int received, Stopwatch stopwatch) {
     final double seconds = stopwatch.elapsedMilliseconds / 1000;
     if (seconds <= 0) return 0;
@@ -221,6 +282,14 @@ class YoutubeExplodeEngine implements DownloadEngine {
 
   @override
   Future<void> dispose() async {
+    _manifestCache.clear();
     _client.close();
   }
+}
+
+class _CachedManifest {
+  const _CachedManifest({required this.manifest, required this.at});
+
+  final StreamManifest manifest;
+  final DateTime at;
 }

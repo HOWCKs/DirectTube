@@ -225,7 +225,7 @@ class DownloadCard extends StatelessWidget {
                     } else {
                       audio.openVideo(path: path, title: task.title);
                     }
-                    nav.goTo(2);
+                    nav.showPlayer();
                   },
                 ),
               ],

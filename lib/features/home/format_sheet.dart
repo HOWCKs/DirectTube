@@ -33,11 +33,14 @@ class FormatSheet extends StatefulWidget {
 }
 
 class _FormatSheetState extends State<FormatSheet> {
-  late final Future<List<FormatOption>> _formats =
-      widget.manager.formatsFor(widget.item);
+  late Future<List<FormatOption>> _formats = _load();
 
   int? _selected;
   bool _starting = false;
+
+  Future<List<FormatOption>> _load() => widget.manager.formatsFor(widget.item);
+
+  void _retry() => setState(() => _formats = _load());
 
   int? _defaultIndex(List<FormatOption> options) {
     final List<FormatOption> usable =
@@ -68,7 +71,7 @@ class _FormatSheetState extends State<FormatSheet> {
     try {
       await widget.manager.enqueue(item: widget.item, format: format);
       navigator.pop();
-      nav.goTo(1);
+      nav.showQueue();
       messenger.showSnackBar(
         SnackBar(content: Text('${t.queued}: ${widget.item.title}')),
       );
@@ -163,9 +166,20 @@ class _FormatSheetState extends State<FormatSheet> {
                 if (snapshot.hasError) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 18),
-                    child: EmptyState(
-                      icon: Icons.error_outline_rounded,
-                      message: snapshot.error.toString(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        EmptyState(
+                          icon: Icons.error_outline_rounded,
+                          message: snapshot.error.toString(),
+                        ),
+                        const SizedBox(height: 14),
+                        NeuButton(
+                          label: t.retry,
+                          icon: Icons.refresh_rounded,
+                          onTap: _retry,
+                        ),
+                      ],
                     ),
                   );
                 }

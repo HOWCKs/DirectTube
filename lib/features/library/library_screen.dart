@@ -36,7 +36,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     } else {
       audio.openVideo(path: path, title: task.title);
     }
-    nav.goTo(2);
+    nav.showPlayer();
   }
 
   @override

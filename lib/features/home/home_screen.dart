@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 import '../../app/app_scope.dart';
 import '../../core/formatting.dart';
 import '../../core/haptics.dart';
 import '../../core/link_parser.dart';
 import '../../data/engine/download_engine.dart';
+import '../../data/engine/youtube_explode_engine.dart';
 import '../../data/models/media_item.dart';
 import '../../design/neu_palette.dart';
 import '../../design/neu_widgets.dart';
@@ -12,7 +14,7 @@ import '../../l10n/app_strings.dart';
 import '../shared/widgets.dart';
 import 'format_sheet.dart';
 
-/// Tela inicial: colar um link ou buscar de verdade no YouTube.
+/// Busca com rolagem infinita: cola um link ou pesquisa e vai paginando.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -22,16 +24,67 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scroll = ScrollController();
 
   List<MediaItem> _results = const <MediaItem>[];
+  VideoSearchList? _cursor;
   bool _busy = false;
+  bool _loadingMore = false;
+  bool _canMore = false;
   String? _error;
   bool _didSearch = false;
 
   @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
+    _scroll.removeListener(_onScroll);
+    _scroll.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  YoutubeExplodeEngine? get _engine => AppScope.downloads(context)
+      .registry
+      .byId('youtube-explode') as YoutubeExplodeEngine?;
+
+  void _onScroll() {
+    if (!_scroll.hasClients) return;
+    final ScrollPosition position = _scroll.position;
+    if (position.pixels >= position.maxScrollExtent - 300) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadMore() async {
+    final YoutubeExplodeEngine? engine = _engine;
+    final VideoSearchList? cursor = _cursor;
+    if (engine == null || cursor == null || !_canMore || _loadingMore) return;
+
+    setState(() => _loadingMore = true);
+    try {
+      final VideoSearchList? next = await engine.moreResults(cursor);
+      if (!mounted) return;
+      if (next == null || next.isEmpty) {
+        setState(() {
+          _canMore = false;
+          _loadingMore = false;
+        });
+        return;
+      }
+      setState(() {
+        _cursor = next;
+        _results = <MediaItem>[..._results, ...engine.mapResults(next)];
+        _loadingMore = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingMore = false);
+    }
   }
 
   Future<void> _submit(String raw) async {
@@ -44,6 +97,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _busy = true;
       _error = null;
       _results = const <MediaItem>[];
+      _cursor = null;
+      _canMore = false;
     });
 
     try {
@@ -55,11 +110,18 @@ class _HomeScreenState extends State<HomeScreen> {
           _didSearch = true;
         });
       } else {
-        final List<MediaItem> results =
-            await AppScope.searchOf(context).search(value);
+        final YoutubeExplodeEngine? engine = _engine;
+        if (engine == null) {
+          setState(() => _error = AppStrings.forLocale(
+              Localizations.localeOf(context)).noEngine);
+          return;
+        }
+        final VideoSearchList page = await engine.searchPage(value);
         if (!mounted) return;
         setState(() {
-          _results = results;
+          _cursor = page;
+          _results = engine.mapResults(page);
+          _canMore = true;
           _didSearch = true;
         });
       }
@@ -68,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => _error = error.message);
     } catch (error) {
       if (!mounted) return;
-      setState(() => _error = error.toString());
+      setState(() => _error = friendlySearchError(error));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -100,6 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final NeuPalette palette = NeuPalette.of(context);
 
     return ListView(
+      controller: _scroll,
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       children: <Widget>[
         Padding(
@@ -153,9 +216,16 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!_busy && _error != null)
           Padding(
             padding: const EdgeInsets.only(top: 26),
-            child: EmptyState(
-              icon: Icons.link_off_rounded,
-              message: _error!,
+            child: Column(
+              children: <Widget>[
+                EmptyState(icon: Icons.link_off_rounded, message: _error!),
+                const SizedBox(height: 14),
+                NeuButton(
+                  label: t.retry,
+                  icon: Icons.refresh_rounded,
+                  onTap: () => _submit(_controller.text),
+                ),
+              ],
             ),
           ),
         if (!_busy && _error == null && _results.isEmpty)
@@ -187,8 +257,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+          if (_loadingMore)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Center(
+                child: CircularProgressIndicator(
+                    color: palette.accent, strokeWidth: 2),
+              ),
+            ),
         ],
       ],
     );
   }
+}
+
+String friendlySearchError(Object error) {
+  final String text = error.toString();
+  if (text.contains('RequestLimitExceededException') ||
+      text.contains('rate limit')) {
+    return 'Muitas buscas vindas deste IP agora. Aguarde um pouco e tente de novo.';
+  }
+  if (text.length > 160) return '${text.substring(0, 160)}…';
+  return text;
 }

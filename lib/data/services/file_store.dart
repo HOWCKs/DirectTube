@@ -4,7 +4,10 @@ import 'package:path_provider/path_provider.dart';
 
 /// Onde os arquivos baixados são gravados e como os nomes são montados.
 class FileStore {
-  FileStore();
+  FileStore({this.overrideBase});
+
+  /// Pasta escolhida pelo usuário (Ajustes). `null` = padrão do app.
+  String? overrideBase;
 
   static final RegExp _controlChars = RegExp(r'[\x00-\x1F]');
   static final RegExp _invalidChars = RegExp(r'[\\/:*?"<>|]');
@@ -33,9 +36,15 @@ class FileStore {
     return value.isEmpty ? 'download' : value;
   }
 
-  /// Pasta base: externa do app quando disponível (visível ao usuário em
-  /// `Android/data/<pacote>/files/DirectTube`), senão documentos internos.
+  /// Pasta base: se o usuário escolheu uma (Ajustes), usa-a; senão a externa
+  /// do app; senão documentos internos.
   Future<Directory> baseDirectory() async {
+    final String? custom = overrideBase;
+    if (custom != null && custom.isNotEmpty) {
+      final Directory dir = Directory(custom);
+      if (!await dir.exists()) await dir.create(recursive: true);
+      return dir;
+    }
     try {
       final Directory? external = await getExternalStorageDirectory();
       if (external != null) {

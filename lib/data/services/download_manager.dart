@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/errors.dart';
 import '../../core/haptics.dart';
 import '../../core/link_parser.dart';
 import '../engine/download_engine.dart';
@@ -42,6 +43,11 @@ class DownloadManager extends ChangeNotifier {
   final Map<String, CancellationToken> _tokens = <String, CancellationToken>{};
 
   EngineRegistry get registry => _registry;
+
+  /// Aplica a pasta escolhida pelo usuário (vinda de `AppSettings`).
+  void setStoragePath(String? path) {
+    _files.overrideBase = (path == null || path.isEmpty) ? null : path;
+  }
 
   List<DownloadTask> get tasks => queue.tasks;
 
@@ -278,16 +284,7 @@ class DownloadManager extends ChangeNotifier {
     }
   }
 
-  static String _humanize(Object error) {
-    final String text = error.toString();
-    if (text.contains('SocketException') || text.contains('Failed host lookup')) {
-      return 'Sem conexão com a internet.';
-    }
-    if (text.contains('VideoUnavailable')) return 'Vídeo indisponível ou privado.';
-    if (text.contains('AgeRestricted')) return 'Vídeo com restrição de idade.';
-    if (text.length > 160) return '${text.substring(0, 160)}…';
-    return text;
-  }
+  static String _humanize(Object error) => friendlyError(error);
 
   // ------------------------------------------------------------- persistência
 

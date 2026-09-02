@@ -9,10 +9,13 @@ class SearchService {
 
   final EngineRegistry _registry;
 
+  YoutubeExplodeEngine? get _youtube =>
+      _registry.byId('youtube-explode') as YoutubeExplodeEngine?;
+
   Future<List<MediaItem>> search(String query) async {
-    final YoutubeExplodeEngine? engine =
-        _registry.byId('youtube-explode') as YoutubeExplodeEngine?;
-    if (engine == null) return const <MediaItem>[];
-    return engine.search(query);
+    final YoutubeExplodeEngine? engine = _youtube;
+    if (engine == null || query.trim().isEmpty) return const <MediaItem>[];
+    final results = await engine.searchPage(query);
+    return engine.mapResults(results);
   }
 }

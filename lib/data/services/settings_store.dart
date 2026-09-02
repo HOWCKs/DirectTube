@@ -12,6 +12,7 @@ class AppSettings {
     this.localeCode = 'pt_BR',
     this.maxConcurrent = 2,
     this.preferAudio = false,
+    this.storagePath,
   });
 
   final bool hapticsEnabled;
@@ -24,6 +25,9 @@ class AppSettings {
   /// Quando ligado, o app sugere áudio (MP3/M4A) por padrão.
   final bool preferAudio;
 
+  /// Pasta escolhida pelo usuário para salvar (null = padrão do app).
+  final String? storagePath;
+
   AppSettings copyWith({
     bool? hapticsEnabled,
     bool? wifiOnly,
@@ -32,6 +36,7 @@ class AppSettings {
     String? localeCode,
     int? maxConcurrent,
     bool? preferAudio,
+    String? storagePath,
   }) {
     return AppSettings(
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
@@ -41,6 +46,7 @@ class AppSettings {
       localeCode: localeCode ?? this.localeCode,
       maxConcurrent: maxConcurrent ?? this.maxConcurrent,
       preferAudio: preferAudio ?? this.preferAudio,
+      storagePath: storagePath ?? this.storagePath,
     );
   }
 
@@ -52,6 +58,7 @@ class AppSettings {
         'localeCode': localeCode,
         'maxConcurrent': maxConcurrent,
         'preferAudio': preferAudio,
+        'storagePath': storagePath,
       };
 
   static AppSettings fromJson(Map<String, dynamic> json) => AppSettings(
@@ -62,6 +69,7 @@ class AppSettings {
         localeCode: json['localeCode'] as String? ?? 'pt_BR',
         maxConcurrent: (json['maxConcurrent'] as num?)?.toInt() ?? 2,
         preferAudio: json['preferAudio'] as bool? ?? false,
+        storagePath: json['storagePath'] as String?,
       );
 
   @override
@@ -73,11 +81,12 @@ class AppSettings {
       other.darkTheme == darkTheme &&
       other.localeCode == localeCode &&
       other.maxConcurrent == maxConcurrent &&
-      other.preferAudio == preferAudio;
+      other.preferAudio == preferAudio &&
+      other.storagePath == storagePath;
 
   @override
   int get hashCode => Object.hash(hapticsEnabled, wifiOnly, backgroundDownloads,
-      darkTheme, localeCode, maxConcurrent, preferAudio);
+      darkTheme, localeCode, maxConcurrent, preferAudio, storagePath);
 }
 
 /// Persistência das preferências em `SharedPreferences`.

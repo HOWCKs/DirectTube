@@ -188,13 +188,38 @@ class _FormatSheetState extends State<FormatSheet> {
                     snapshot.data ?? const <FormatOption>[];
                 _selected ??= _defaultIndex(options);
 
+                final List<Widget> videoChips = <Widget>[];
+                final List<Widget> audioChips = <Widget>[];
+                for (int i = 0; i < options.length; i++) {
+                  (options[i].isAudioOnly ? audioChips : videoChips)
+                      .add(_chip(options[i], i, t));
+                }
+
                 return SingleChildScrollView(
-                  child: Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      for (int i = 0; i < options.length; i++)
-                        _chip(options[i], i, t),
+                      if (videoChips.isNotEmpty) ...<Widget>[
+                        _groupTitle('MP4 · Vídeo', palette),
+                        const SizedBox(height: 10),
+                        Wrap(spacing: 12, runSpacing: 12, children: videoChips),
+                        const SizedBox(height: 20),
+                      ],
+                      if (audioChips.isNotEmpty) ...<Widget>[
+                        _groupTitle('Áudio · M4A/OPUS', palette),
+                        const SizedBox(height: 10),
+                        Wrap(spacing: 12, runSpacing: 12, children: audioChips),
+                        const SizedBox(height: 14),
+                        Text(
+                          'MP3 (conversão) e 1080p+ chegam com o módulo FFmpeg.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: palette.textMuted,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 );
@@ -220,6 +245,16 @@ class _FormatSheetState extends State<FormatSheet> {
       ),
     );
   }
+
+  Widget _groupTitle(String label, NeuPalette palette) => Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontSize: NeuTokens.textSmall,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.1,
+          color: palette.textMuted,
+        ),
+      );
 
   Widget _chip(FormatOption option, int index, AppStrings t) {
     if (option.needsMuxing) {

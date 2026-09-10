@@ -14,6 +14,7 @@ import '../models/format_option.dart';
 import '../models/media_item.dart';
 import 'download_queue.dart';
 import 'file_store.dart';
+import 'media_publisher.dart';
 
 /// Orquestra fila, motores e arquivos.
 ///
@@ -38,6 +39,7 @@ class DownloadManager extends ChangeNotifier {
   final EngineRegistry _registry;
   final FileStore _files;
   final SharedPreferences? _prefs;
+  final MediaPublisher _publisher = MediaPublisher();
 
   final DownloadQueue queue;
   final Map<String, CancellationToken> _tokens = <String, CancellationToken>{};
@@ -264,6 +266,19 @@ class DownloadManager extends ChangeNotifier {
           filePath: outputPath,
         ));
         notifyListeners();
+      }
+
+      // Publica uma cópia na memória pública (Músicas/Filmes) para aparecer no
+      // gerenciador de arquivos/galeria. O player toca o arquivo privado, que
+      // não exige permissão de leitura. Falhas aqui não derrubam o download.
+      try {
+        await _publisher.publish(
+          path: outputPath,
+          isAudio: task.isAudioOnly,
+          title: task.title,
+        );
+      } catch (_) {
+        // Sem lado nativo ou sem espaço: mantém só o arquivo privado.
       }
 
       queue.complete(id, outputPath);

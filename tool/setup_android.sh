@@ -49,10 +49,14 @@ for f in android/app/build.gradle android/app/build.gradle.kts; do
     # flutter_local_notifications exige core library desugaring no :app.
     if [[ "$f" == *.kts ]]; then
       sed -i "s/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/" "$f"
-      sed -i "s/dependencies {/dependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")/" "$f"
+      if ! grep -q "coreLibraryDesugaring(" "$f"; then
+        printf '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n' >> "$f"
+      fi
     else
       sed -i "s/compileOptions {/compileOptions {\n        coreLibraryDesugaringEnabled true/" "$f"
-      sed -i "s/dependencies {/dependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'/" "$f"
+      if ! grep -q "coreLibraryDesugaring" "$f"; then
+        printf '\ndependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"\n}\n' >> "$f"
+      fi
     fi
     echo "    patch: $f"
   fi

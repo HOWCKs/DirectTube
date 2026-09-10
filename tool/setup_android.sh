@@ -46,6 +46,14 @@ for f in android/app/build.gradle android/app/build.gradle.kts; do
     # file_picker (via flutter_plugin_android_lifecycle) exige compileSdk >= 36.
     sed -i -E "s/compileSdk = .*/compileSdk = 36/" "$f"
     sed -i -E "s/compileSdkVersion .*/compileSdkVersion 36/" "$f"
+    # flutter_local_notifications exige core library desugaring no :app.
+    if [[ "$f" == *.kts ]]; then
+      sed -i "s/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/" "$f"
+      sed -i "s/dependencies {/dependencies {\n    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")/" "$f"
+    else
+      sed -i "s/compileOptions {/compileOptions {\n        coreLibraryDesugaringEnabled true/" "$f"
+      sed -i "s/dependencies {/dependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'/" "$f"
+    fi
     echo "    patch: $f"
   fi
 done

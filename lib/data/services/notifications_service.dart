@@ -29,9 +29,10 @@ class DownloadNotifications {
     const InitializationSettings settings =
         InitializationSettings(android: android);
     final bool ok = await _plugin.initialize(
-      settings,
-      onDidReceiveNotificationResponse: _handleResponse,
-    );
+          settings,
+          onDidReceiveNotificationResponse: _handleResponse,
+        ) ??
+        false;
     if (ok) {
       final AndroidFlutterLocalNotificationsPlugin? androidImpl = _plugin
           .resolvePlatformSpecificImplementation<
@@ -80,8 +81,8 @@ class DownloadNotifications {
       progress: pct,
       indeterminate: total == null && running,
       actions: const <AndroidNotificationAction>[
-        AndroidNotificationAction('pause', 'Pausar', showUserInterface: false),
-        AndroidNotificationAction('cancel', 'Cancelar', showUserInterface: false),
+        AndroidNotificationAction('pause', 'Pausar', cancelNotification: false),
+        AndroidNotificationAction('cancel', 'Cancelar'),
       ],
     );
 

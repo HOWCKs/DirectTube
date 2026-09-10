@@ -45,6 +45,8 @@ class AppSettings {
     int? maxConcurrent,
     bool? preferAudio,
     String? storagePath,
+    String? audioStoragePath,
+    String? videoStoragePath,
   }) {
     return AppSettings(
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
@@ -55,6 +57,8 @@ class AppSettings {
       maxConcurrent: maxConcurrent ?? this.maxConcurrent,
       preferAudio: preferAudio ?? this.preferAudio,
       storagePath: storagePath ?? this.storagePath,
+      audioStoragePath: audioStoragePath ?? this.audioStoragePath,
+      videoStoragePath: videoStoragePath ?? this.videoStoragePath,
     );
   }
 
@@ -67,6 +71,8 @@ class AppSettings {
         'maxConcurrent': maxConcurrent,
         'preferAudio': preferAudio,
         'storagePath': storagePath,
+        'audioStoragePath': audioStoragePath,
+        'videoStoragePath': videoStoragePath,
       };
 
   static AppSettings fromJson(Map<String, dynamic> json) => AppSettings(
@@ -78,6 +84,8 @@ class AppSettings {
         maxConcurrent: (json['maxConcurrent'] as num?)?.toInt() ?? 2,
         preferAudio: json['preferAudio'] as bool? ?? false,
         storagePath: json['storagePath'] as String?,
+        audioStoragePath: json['audioStoragePath'] as String?,
+        videoStoragePath: json['videoStoragePath'] as String?,
       );
 
   @override
@@ -90,11 +98,22 @@ class AppSettings {
       other.localeCode == localeCode &&
       other.maxConcurrent == maxConcurrent &&
       other.preferAudio == preferAudio &&
-      other.storagePath == storagePath;
+      other.storagePath == storagePath &&
+      other.audioStoragePath == audioStoragePath &&
+      other.videoStoragePath == videoStoragePath;
 
   @override
-  int get hashCode => Object.hash(hapticsEnabled, wifiOnly, backgroundDownloads,
-      darkTheme, localeCode, maxConcurrent, preferAudio, storagePath);
+  int get hashCode => Object.hash(
+      hapticsEnabled,
+      wifiOnly,
+      backgroundDownloads,
+      darkTheme,
+      localeCode,
+      maxConcurrent,
+      preferAudio,
+      storagePath,
+      audioStoragePath,
+      videoStoragePath);
 }
 
 /// Persistência das preferências em `SharedPreferences`.

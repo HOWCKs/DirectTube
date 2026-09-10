@@ -23,7 +23,7 @@ class MediaPublisher {
       'title': title,
     });
     if (result == null || result.isEmpty) {
-      throw const PlatformException(code: 'publish', message: 'Sem caminho público.');
+      throw PlatformException(code: 'publish', message: 'Sem caminho público.');
     }
     return result;
   }

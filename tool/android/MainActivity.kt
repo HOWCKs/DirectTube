@@ -62,6 +62,15 @@ class MainActivity : FlutterActivity() {
                             result.error("scan", e.message ?: "falha ao escanear", null)
                         }
                     }
+                    "share" -> {
+                        val text = call.argument<String>("text") ?: ""
+                        try {
+                            shareText(text)
+                            result.success(null)
+                        } catch (e: Exception) {
+                            result.error("share", e.message ?: "falha ao compartilhar", null)
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -229,6 +238,14 @@ class MainActivity : FlutterActivity() {
     private fun publicPath(relative: String, name: String): String {
         val root = Environment.getExternalStoragePublicDirectory(relative)
         return File(root, name).absolutePath
+    }
+
+    private fun shareText(text: String) {
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        startActivity(Intent.createChooser(send, null))
     }
 
     private fun guessMime(name: String, isAudio: Boolean): String {

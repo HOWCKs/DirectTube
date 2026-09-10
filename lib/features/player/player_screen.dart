@@ -48,7 +48,11 @@ class PlayerScreen extends StatelessWidget {
             _title(t.nowPlaying, palette),
             const SizedBox(height: 18),
             if (audio.isVideo)
-              VideoSurface(path: audio.videoPath!, title: audio.title ?? '')
+              VideoSurface(
+                path: audio.videoPath,
+                url: audio.videoUrl,
+                title: audio.title ?? '',
+              )
             else
               AudioSurface(audio: audio),
           ],
@@ -235,9 +239,10 @@ class _Seek extends StatelessWidget {
 
 /// Superfície de vídeo: `video_player` sobre arquivo local.
 class VideoSurface extends StatefulWidget {
-  const VideoSurface({super.key, required this.path, required this.title});
+  const VideoSurface({super.key, this.path, this.url, required this.title});
 
-  final String path;
+  final String? path;
+  final String? url;
   final String title;
 
   @override
@@ -245,8 +250,9 @@ class VideoSurface extends StatefulWidget {
 }
 
 class _VideoSurfaceState extends State<VideoSurface> {
-  late final VideoPlayerController _controller =
-      VideoPlayerController.file(File(widget.path));
+  late final VideoPlayerController _controller = widget.url != null
+      ? VideoPlayerController.networkUrl(Uri.parse(widget.url!))
+      : VideoPlayerController.file(File(widget.path!));
 
   bool _ready = false;
   String? _error;

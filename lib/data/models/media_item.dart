@@ -10,6 +10,7 @@ class MediaItem {
     this.author,
     this.duration,
     this.thumbnailUrl,
+    this.viewCount,
     this.engineId,
   });
 
@@ -20,6 +21,7 @@ class MediaItem {
   final String? author;
   final Duration? duration;
   final String? thumbnailUrl;
+  final int? viewCount;
 
   /// Motor que resolveu este item (útil para retomar o download depois).
   final String? engineId;
@@ -29,6 +31,7 @@ class MediaItem {
     String? author,
     Duration? duration,
     String? thumbnailUrl,
+    int? viewCount,
     String? engineId,
   }) {
     return MediaItem(
@@ -39,6 +42,7 @@ class MediaItem {
       author: author ?? this.author,
       duration: duration ?? this.duration,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      viewCount: viewCount ?? this.viewCount,
       engineId: engineId ?? this.engineId,
     );
   }

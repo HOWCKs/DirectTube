@@ -93,6 +93,10 @@ abstract class AppStrings {
   String get deviceMusic;
   String get scanning;
   String get noDeviceMusic;
+  String get forYou;
+  String get save;
+  String get share;
+  String get watch;
 
   // Erros
   String get invalidLink;
@@ -254,6 +258,14 @@ class PtBrStrings extends AppStrings {
   @override
   String get noDeviceMusic =>
       'Escolha uma pasta com suas músicas para tocá-las aqui.';
+  @override
+  String get forYou => 'Para você';
+  @override
+  String get save => 'Guardar';
+  @override
+  String get share => 'Compartilhar';
+  @override
+  String get watch => 'Assistir';
 
   @override
   String get invalidLink => 'Não reconheci esse link.';
@@ -409,6 +421,14 @@ class EnStrings extends AppStrings {
   @override
   String get noDeviceMusic =>
       'Pick a folder with your music to play it here.';
+  @override
+  String get forYou => 'For you';
+  @override
+  String get save => 'Save';
+  @override
+  String get share => 'Share';
+  @override
+  String get watch => 'Watch';
 
   @override
   String get invalidLink => 'I could not recognize that link.';

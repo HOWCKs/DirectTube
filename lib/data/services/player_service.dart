@@ -32,25 +32,40 @@ class AudioPlayerService extends ChangeNotifier {
   String? _path;
   String? _title;
   String? _videoPath;
+  String? _videoUrl;
   String? _videoTitle;
   bool _loading = false;
   String? _error;
 
   String? get path => _path;
   String? get videoPath => _videoPath;
+  String? get videoUrl => _videoUrl;
 
   /// `true` quando o item atual é vídeo (a tela usa `video_player`).
-  bool get isVideo => _videoPath != null;
+  bool get isVideo => _videoPath != null || _videoUrl != null;
 
   String? get title => isVideo ? _videoTitle : _title;
   bool get isLoading => _loading;
   String? get error => _error;
-  bool get hasItem => _path != null || _videoPath != null;
+  bool get hasItem => _path != null || _videoPath != null || _videoUrl != null;
 
   /// Abre um vídeo baixado (a reprodução em si fica com `video_player`).
   Future<void> openVideo({required String path, required String title}) async {
     await _player.pause();
     _videoPath = path;
+    _videoUrl = null;
+    _videoTitle = title;
+    _path = null;
+    _title = null;
+    _error = null;
+    notifyListeners();
+  }
+
+  /// Abre um vídeo por URL (streaming do motor), sem baixar antes.
+  Future<void> openVideoUrl({required String url, required String title}) async {
+    await _player.pause();
+    _videoUrl = url;
+    _videoPath = null;
     _videoTitle = title;
     _path = null;
     _title = null;
@@ -69,6 +84,7 @@ class AudioPlayerService extends ChangeNotifier {
     _loading = true;
     _error = null;
     _videoPath = null;
+    _videoUrl = null;
     _videoTitle = null;
     _path = path;
     _title = title;
@@ -114,6 +130,7 @@ class AudioPlayerService extends ChangeNotifier {
     _path = null;
     _title = null;
     _videoPath = null;
+    _videoUrl = null;
     _videoTitle = null;
     notifyListeners();
   }

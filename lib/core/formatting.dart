@@ -37,4 +37,17 @@ class Fmt {
   /// Progresso legível: `"42%"`.
   static String percent(double value) =>
       '${(value.clamp(0.0, 1.0) * 100).round()}%';
+
+  /// Visualizações compactas: `72000000` -> `"72 mi"`, `738000` -> `"738 mil"`.
+  static String views(num? value) {
+    if (value == null || value <= 0) return '';
+    final int v = value.toInt();
+    if (v >= 1000000) {
+      final double mi = v / 1000000;
+      final String s = mi >= 10 ? mi.round().toString() : mi.toStringAsFixed(1).replaceAll('.0', '').replaceAll('.', ',');
+      return '$s mi';
+    }
+    if (v >= 1000) return '${(v / 1000).round()} mil';
+    return '$v';
+  }
 }

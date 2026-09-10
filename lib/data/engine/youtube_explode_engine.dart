@@ -89,6 +89,7 @@ class YoutubeExplodeEngine implements DownloadEngine {
         author: video.author,
         duration: video.duration,
         thumbnailUrl: video.thumbnails.mediumResUrl,
+        viewCount: video.engagement.viewCount,
         engineId: id,
       );
 
@@ -134,6 +135,16 @@ class YoutubeExplodeEngine implements DownloadEngine {
   }
 
   @override
+  /// URL de um stream muxado (vídeo+áudio) para pré-visualização, ou `null`.
+  Future<String?> previewUrl(MediaItem item) async {
+    final StreamManifest manifest = await _manifest(item.id);
+    final List<MuxedStreamInfo> muxed = manifest.muxed.toList();
+    if (muxed.isEmpty) return null;
+    final MuxedStreamInfo best = muxed.reduce((MuxedStreamInfo a, MuxedStreamInfo b) =>
+        a.videoResolution.height >= b.videoResolution.height ? a : b);
+    return best.url.toString();
+  }
+
   Future<List<FormatOption>> formatsFor(MediaItem item) async {
     final StreamManifest manifest = await _manifest(item.id);
 

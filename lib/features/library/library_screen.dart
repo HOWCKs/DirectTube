@@ -4,6 +4,7 @@ import '../../app/app_scope.dart';
 import '../../core/formatting.dart';
 import '../../core/haptics.dart';
 import '../../data/models/download_task.dart';
+import '../../data/services/device_music.dart';
 import '../../data/services/download_manager.dart';
 import '../../data/services/player_service.dart';
 import '../../design/neu_palette.dart';
@@ -23,6 +24,30 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen> {
   LibraryFilter _filter = LibraryFilter.all;
+
+  @override
+  void initState() {
+    super.initState();
+    DeviceMusicService.instance.init();
+  }
+
+  Future<void> _addDeviceFolder() async {
+    final DeviceMusicService svc = DeviceMusicService.instance;
+    await svc.init();
+    if (!svc.permissionGranted) {
+      final bool ok = await svc.ensurePermission();
+      if (!ok || !mounted) return;
+    }
+    await svc.addFolder();
+  }
+
+  void _playDevice(DeviceTrack track) {
+    Haptics.fire(HapticStyle.light);
+    final AudioPlayerService audio = AppScope.audioOf(context);
+    final AppNav nav = AppScope.navOf(context);
+    audio.open(path: track.path, title: track.title);
+    nav.showPlayer();
+  }
 
   void _play(DownloadTask task) {
     final String? path = task.filePath;
@@ -132,6 +157,62 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ),
             ),
           ),
+        const SizedBox(height: 28),
+        ListenableBuilder(
+          listenable: DeviceMusicService.instance,
+          builder: (BuildContext context, Widget? _) {
+            final DeviceMusicService svc = DeviceMusicService.instance;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(child: NeuSectionTitle(svc.folders.isEmpty
+                        ? t.deviceMusic
+                        : '${t.deviceMusic} · ${svc.tracks.length}')),
+                    NeuChip(label: t.chooseFolder, onTap: _addDeviceFolder),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (svc.scanning)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      t.scanning,
+                      style: TextStyle(
+                          fontSize: 12.5, color: palette.textMuted),
+                    ),
+                  ),
+                if (svc.tracks.isEmpty && !svc.scanning)
+                  EmptyState(
+                    icon: Icons.folder_open_rounded,
+                    message: t.noDeviceMusic,
+                  ),
+                for (final DeviceTrack track in svc.tracks)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: NeuListRow(
+                      title: track.title,
+                      subtitle:
+                          '${track.folder} · ${Fmt.bytes(track.sizeBytes)}',
+                      leading: MediaThumb(
+                        width: 52,
+                        height: 52,
+                        icon: Icons.music_note_rounded,
+                      ),
+                      onTap: () => _playDevice(track),
+                      trailing: NeuIconButton(
+                        icon: Icons.play_arrow_rounded,
+                        size: 42,
+                        iconSize: 18,
+                        onTap: () => _playDevice(track),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ],
     );
   }

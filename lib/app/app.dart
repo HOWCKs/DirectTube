@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/haptics.dart';
+import '../data/models/download_task.dart';
 import '../data/services/download_manager.dart';
+import '../data/services/notifications_service.dart';
 import '../data/services/player_service.dart';
 import '../data/services/search_service.dart';
 import '../data/services/settings_store.dart';
@@ -33,16 +35,49 @@ class DirectTubeApp extends StatefulWidget {
 class _DirectTubeAppState extends State<DirectTubeApp> {
   late AppSettings _settings = widget.settingsStore.load();
   final AppNav _nav = AppNav();
+  final DownloadNotifications _notifications = DownloadNotifications();
+  late final NotificationBridge _bridge = NotificationBridge(_notifications);
 
   @override
   void initState() {
     super.initState();
     Haptics.enabled = _settings.hapticsEnabled;
-    widget.manager.setStoragePath(_settings.storagePath);
+    widget.manager.setStoragePaths(
+      base: _settings.storagePath,
+      audio: _settings.audioStoragePath,
+      video: _settings.videoStoragePath,
+    );
+
+    _notifications.init();
+    DownloadNotifications.onOpen = _nav.showQueue;
+    DownloadNotifications.onAction = (String taskId, String action) {
+      if (action == 'cancel') {
+        widget.manager.cancel(taskId);
+        return;
+      }
+      DownloadStatus? status;
+      for (final DownloadTask t in widget.manager.tasks) {
+        if (t.id == taskId) {
+          status = t.status;
+          break;
+        }
+      }
+      if (status == DownloadStatus.paused) {
+        widget.manager.resume(taskId);
+      } else {
+        widget.manager.pause(taskId);
+      }
+    };
+    widget.manager.addListener(_syncNotifications);
+  }
+
+  void _syncNotifications() {
+    _bridge.sync(widget.manager.tasks);
   }
 
   @override
   void dispose() {
+    widget.manager.removeListener(_syncNotifications);
     _nav.dispose();
     super.dispose();
   }
@@ -50,7 +85,11 @@ class _DirectTubeAppState extends State<DirectTubeApp> {
   Future<void> _update(AppSettings next) async {
     setState(() => _settings = next);
     Haptics.enabled = next.hapticsEnabled;
-    widget.manager.setStoragePath(next.storagePath);
+    widget.manager.setStoragePaths(
+      base: next.storagePath,
+      audio: next.audioStoragePath,
+      video: next.videoStoragePath,
+    );
     await widget.settingsStore.save(next);
   }
 

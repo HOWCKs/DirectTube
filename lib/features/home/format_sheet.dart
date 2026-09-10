@@ -263,7 +263,7 @@ class _FormatSheetState extends State<FormatSheet> {
         child: Opacity(
           opacity: 0.45,
           child: NeuChip(
-            label: '${option.label} · ${option.isAudioOnly ? t.audioOnly : t.quality}',
+            label: '${option.label} · FFmpeg',
             enabled: false,
           ),
         ),

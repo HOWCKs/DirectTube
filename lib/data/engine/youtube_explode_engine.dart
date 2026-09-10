@@ -143,7 +143,7 @@ class YoutubeExplodeEngine implements DownloadEngine {
       final int? height = stream.videoResolution.height;
       options.add(FormatOption(
         id: stream.tag.toString(),
-        label: '${height ?? 0}p ${stream.container.name.toUpperCase()}',
+        label: '${_stdHeight(height)}p ${stream.container.name.toUpperCase()}',
         extension: stream.container.name,
         isAudioOnly: false,
         height: height,
@@ -170,7 +170,7 @@ class YoutubeExplodeEngine implements DownloadEngine {
       if (height == null || height <= 720) continue;
       options.add(FormatOption(
         id: stream.tag.toString(),
-        label: '${height}p ${stream.container.name.toUpperCase()}',
+        label: '${_stdHeight(height)}p ${stream.container.name.toUpperCase()}',
         extension: stream.container.name,
         isAudioOnly: false,
         height: height,
@@ -272,6 +272,23 @@ class YoutubeExplodeEngine implements DownloadEngine {
         // Parcial já removido.
       }
     }
+  }
+
+  /// Arredonda a altura real do stream para o padrão de mercado
+  /// (2160/1440/1080/720/480/360/240) — rótulos profissionais.
+  static int _stdHeight(int? height) {
+    if (height == null || height <= 0) return 0;
+    const List<int> standard = <int>[2160, 1440, 1080, 720, 480, 360, 240];
+    int best = standard.last;
+    int bestDiff = (height - best).abs();
+    for (final int s in standard) {
+      final int diff = (height - s).abs();
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = s;
+      }
+    }
+    return best;
   }
 
   double _speed(int received, Stopwatch stopwatch) {

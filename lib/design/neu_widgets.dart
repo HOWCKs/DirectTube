@@ -558,15 +558,17 @@ class NeuTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final NeuPalette palette = NeuPalette.of(context);
     return NeuSurface(
-      elevation: NeuElevation.raised,
+      elevation: NeuElevation.strong,
       radius: NeuTokens.radiusL,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: <Widget>[
           for (int i = 0; i < items.length; i++)
             Expanded(
               child: Pressable(
-                scale: 0.94,
+                // scale 1.0: o feedback vem da sombra/cor, nunca do layout,
+                // para o ícone não "pular" ao tocar.
+                scale: 1.0,
                 pressHaptic: HapticStyle.none,
                 onTap: () {
                   Haptics.fire(HapticStyle.light);
@@ -577,9 +579,9 @@ class NeuTabBar extends StatelessWidget {
                   final Color color =
                       active ? palette.accent : palette.textMuted;
                   return NeuSurface(
-                    elevation: active || pressed
+                    elevation: active
                         ? NeuElevation.pressedSoft
-                        : NeuElevation.soft,
+                        : (pressed ? NeuElevation.soft : NeuElevation.soft),
                     radius: NeuTokens.radiusS,
                     padding: const EdgeInsets.symmetric(vertical: 9),
                     child: Column(

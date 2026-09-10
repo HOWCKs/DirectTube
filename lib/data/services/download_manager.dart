@@ -51,6 +51,13 @@ class DownloadManager extends ChangeNotifier {
     _files.overrideBase = (path == null || path.isEmpty) ? null : path;
   }
 
+  /// Define pastas por tipo (Ajustes). `null`/vazio = padrão inteligente.
+  void setStoragePaths({String? base, String? audio, String? video}) {
+    _files.overrideBase = (base == null || base.isEmpty) ? null : base;
+    _files.overrideAudio = (audio == null || audio.isEmpty) ? null : audio;
+    _files.overrideVideo = (video == null || video.isEmpty) ? null : video;
+  }
+
   List<DownloadTask> get tasks => queue.tasks;
 
   int get activeCount => queue.activeCount;

@@ -86,6 +86,13 @@ abstract class AppStrings {
   String get storageHint;
   String get defaultStorage;
   String get chooseFolder;
+  String get audioFolder;
+  String get videoFolder;
+  String get defaultMusicFolder;
+  String get defaultVideoFolder;
+  String get deviceMusic;
+  String get scanning;
+  String get noDeviceMusic;
 
   // Erros
   String get invalidLink;
@@ -232,6 +239,21 @@ class PtBrStrings extends AppStrings {
   String get defaultStorage => 'Padrão do app';
   @override
   String get chooseFolder => 'Escolher pasta…';
+  @override
+  String get audioFolder => 'Pasta de músicas';
+  @override
+  String get videoFolder => 'Pasta de vídeos';
+  @override
+  String get defaultMusicFolder => 'Padrão (Músicas)';
+  @override
+  String get defaultVideoFolder => 'Padrão (Filmes)';
+  @override
+  String get deviceMusic => 'Músicas do dispositivo';
+  @override
+  String get scanning => 'Escaneando…';
+  @override
+  String get noDeviceMusic =>
+      'Escolha uma pasta com suas músicas para tocá-las aqui.';
 
   @override
   String get invalidLink => 'Não reconheci esse link.';
@@ -372,6 +394,21 @@ class EnStrings extends AppStrings {
   String get defaultStorage => 'App default';
   @override
   String get chooseFolder => 'Choose folder…';
+  @override
+  String get audioFolder => 'Music folder';
+  @override
+  String get videoFolder => 'Video folder';
+  @override
+  String get defaultMusicFolder => 'Default (Music)';
+  @override
+  String get defaultVideoFolder => 'Default (Movies)';
+  @override
+  String get deviceMusic => 'Device music';
+  @override
+  String get scanning => 'Scanning…';
+  @override
+  String get noDeviceMusic =>
+      'Pick a folder with your music to play it here.';
 
   @override
   String get invalidLink => 'I could not recognize that link.';

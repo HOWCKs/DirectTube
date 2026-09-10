@@ -25,6 +25,9 @@ dependencies:
   just_audio: ^0.9.40
   video_player: ^2.9.2
 
+  # Notificações de download com progresso + ações Pausar/Cancelar
+  flutter_local_notifications: ^17.2.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -4,10 +4,16 @@ import 'package:path_provider/path_provider.dart';
 
 /// Onde os arquivos baixados são gravados e como os nomes são montados.
 class FileStore {
-  FileStore({this.overrideBase});
+  FileStore({this.overrideBase, this.overrideAudio, this.overrideVideo});
 
   /// Pasta escolhida pelo usuário (Ajustes). `null` = padrão do app.
   String? overrideBase;
+
+  /// Pasta específica para áudios (null = base/padrão).
+  String? overrideAudio;
+
+  /// Pasta específica para vídeos (null = base/padrão).
+  String? overrideVideo;
 
   static final RegExp _controlChars = RegExp(r'[\x00-\x1F]');
   static final RegExp _invalidChars = RegExp(r'[\\/:*?"<>|]');
@@ -61,11 +67,16 @@ class FileStore {
     return dir;
   }
 
-  Future<Directory> videoDirectory() => _sub('Vídeos');
+  Future<Directory> videoDirectory() => _sub('Vídeos', overrideVideo);
 
-  Future<Directory> audioDirectory() => _sub('Músicas');
+  Future<Directory> audioDirectory() => _sub('Músicas', overrideAudio);
 
-  Future<Directory> _sub(String name) async {
+  Future<Directory> _sub(String name, String? override) async {
+    if (override != null && override.isNotEmpty) {
+      final Directory dir = Directory(override);
+      if (!await dir.exists()) await dir.create(recursive: true);
+      return dir;
+    }
     final Directory base = await baseDirectory();
     final Directory dir = Directory('${base.path}/$name');
     if (!await dir.exists()) await dir.create(recursive: true);

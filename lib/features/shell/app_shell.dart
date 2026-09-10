@@ -35,7 +35,7 @@ class AppShell extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
                   child: NeuTabBar(
                     items: <NeuTabItem>[
                       NeuTabItem(icon: Icons.download_rounded, label: t.download),

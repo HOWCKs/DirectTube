@@ -13,6 +13,8 @@ class AppSettings {
     this.maxConcurrent = 2,
     this.preferAudio = false,
     this.storagePath,
+    this.audioStoragePath,
+    this.videoStoragePath,
   });
 
   final bool hapticsEnabled;
@@ -27,6 +29,12 @@ class AppSettings {
 
   /// Pasta escolhida pelo usuário para salvar (null = padrão do app).
   final String? storagePath;
+
+  /// Pasta específica para áudios (null = padrão inteligente: Músicas).
+  final String? audioStoragePath;
+
+  /// Pasta específica para vídeos (null = padrão inteligente: Filmes).
+  final String? videoStoragePath;
 
   AppSettings copyWith({
     bool? hapticsEnabled,

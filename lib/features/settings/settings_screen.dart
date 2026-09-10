@@ -158,14 +158,31 @@ class SettingsScreen extends StatelessWidget {
         NeuSectionTitle(t.storage),
         _gap(
           NeuListRow(
-            title: t.storage,
-            subtitle: settings.storagePath ?? t.defaultStorage,
-            onTap: () => _pickStorage(context, settings, update, t),
+            title: t.audioFolder,
+            subtitle: settings.audioStoragePath ?? t.defaultMusicFolder,
+            onTap: () => _pickFolder(context, t,
+                (String? p) => update(settings.copyWith(audioStoragePath: p))),
             trailing: NeuIconButton(
-              icon: Icons.folder_rounded,
+              icon: Icons.music_note_rounded,
               size: 42,
               iconSize: 18,
-              onTap: () => _pickStorage(context, settings, update, t),
+              onTap: () => _pickFolder(context, t,
+                  (String? p) => update(settings.copyWith(audioStoragePath: p))),
+            ),
+          ),
+        ),
+        _gap(
+          NeuListRow(
+            title: t.videoFolder,
+            subtitle: settings.videoStoragePath ?? t.defaultVideoFolder,
+            onTap: () => _pickFolder(context, t,
+                (String? p) => update(settings.copyWith(videoStoragePath: p))),
+            trailing: NeuIconButton(
+              icon: Icons.movie_rounded,
+              size: 42,
+              iconSize: 18,
+              onTap: () => _pickFolder(context, t,
+                  (String? p) => update(settings.copyWith(videoStoragePath: p))),
             ),
           ),
         ),
@@ -201,8 +218,8 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _pickStorage(BuildContext context, AppSettings settings,
-      ValueChanged<AppSettings> update, AppStrings t) async {
+  Future<void> _pickFolder(BuildContext context, AppStrings t,
+      ValueChanged<String?> apply) async {
     final List<Directory>? found = await getExternalStorageDirectories();
     final List<Directory> volumes = found ?? <Directory>[];
     if (!context.mounted) return;
@@ -244,7 +261,7 @@ class SettingsScreen extends StatelessWidget {
     );
 
     if (picked == null) return;
-    update(settings.copyWith(storagePath: picked.isEmpty ? null : picked));
+    apply(picked.isEmpty ? null : picked);
   }
 
   String _volumeLabel(String path) {

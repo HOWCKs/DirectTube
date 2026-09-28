@@ -75,11 +75,11 @@ object NewPipeBridge {
                 mapOf(
                     "url" to s.content,
                     "label" to (s.resolution ?: "video"),
-                    "ext" to (s.getMediaFormat()?.suffix ?: "mp4"),
+                    "ext" to (s.getFormat()?.suffix ?: "mp4"),
                     "audioOnly" to false,
                     "height" to parseHeight(s.resolution),
                     "bitrateKbps" to 0,
-                    "size" to s.getContentLength(),
+                    "size" to null,
                     "needsMuxing" to false
                 )
             )
@@ -89,11 +89,11 @@ object NewPipeBridge {
                 mapOf(
                     "url" to s.content,
                     "label" to ((s.resolution ?: "video") + " (vídeo mudo)"),
-                    "ext" to (s.getMediaFormat()?.suffix ?: "mp4"),
+                    "ext" to (s.getFormat()?.suffix ?: "mp4"),
                     "audioOnly" to false,
                     "height" to parseHeight(s.resolution),
                     "bitrateKbps" to 0,
-                    "size" to s.getContentLength(),
+                    "size" to null,
                     "needsMuxing" to true
                 )
             )
@@ -103,11 +103,11 @@ object NewPipeBridge {
                 mapOf(
                     "url" to s.content,
                     "label" to ("Áudio " + (s.averageBitrate) + "k"),
-                    "ext" to (s.getMediaFormat()?.suffix ?: "m4a"),
+                    "ext" to (s.getFormat()?.suffix ?: "m4a"),
                     "audioOnly" to true,
                     "height" to null,
                     "bitrateKbps" to s.averageBitrate,
-                    "size" to s.getContentLength(),
+                    "size" to null,
                     "needsMuxing" to false
                 )
             )

@@ -71,6 +71,32 @@ class MainActivity : FlutterActivity() {
                             result.error("share", e.message ?: "falha ao compartilhar", null)
                         }
                     }
+                    "np_isAvailable" -> Thread {
+                        try {
+                            NewPipeBridge.ensureInit()
+                            result.success(true)
+                        } catch (e: Exception) {
+                            result.success(false)
+                        }
+                    }.start()
+                    "np_resolve" -> Thread {
+                        try {
+                            result.success(
+                                NewPipeBridge.resolve(call.argument<String>("url") ?: "")
+                            )
+                        } catch (e: Exception) {
+                            result.error("resolve", e.message ?: "falha", null)
+                        }
+                    }.start()
+                    "np_formats" -> Thread {
+                        try {
+                            result.success(
+                                NewPipeBridge.formats(call.argument<String>("url") ?: "")
+                            )
+                        } catch (e: Exception) {
+                            result.error("formats", e.message ?: "falha", null)
+                        }
+                    }.start()
                     else -> result.notImplemented()
                 }
             }

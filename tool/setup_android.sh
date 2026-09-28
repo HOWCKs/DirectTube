@@ -38,6 +38,7 @@ find android/app/src/main/kotlin -type d -name "${PROJECT}" -prune -exec rm -rf 
 MAIN_DIR="android/app/src/main/kotlin/$(echo "$APP_ID" | tr '.' '/')"
 mkdir -p "$MAIN_DIR"
 cp tool/android/MainActivity.kt "$MAIN_DIR/MainActivity.kt"
+cp tool/android/NewPipeBridge.kt "$MAIN_DIR/NewPipeBridge.kt"
 
 echo "==> aplicando ícones e recursos canônicos (adaptativo + notificação)"
 mkdir -p android/app/src/main/res
@@ -60,11 +61,17 @@ for f in android/app/build.gradle android/app/build.gradle.kts; do
       if ! grep -q "coreLibraryDesugaring(" "$f"; then
         printf '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n' >> "$f"
       fi
+      if ! grep -q "NewPipeExtractor" "$f"; then
+        printf '\nrepositories {\n    maven { url = uri("https://jitpack.io") }\n}\ndependencies {\n    implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.24.2")\n    implementation("com.squareup.okhttp3:okhttp:4.12.0")\n}\n' >> "$f"
+      fi
     else
       sed -i "s/compileOptions {/compileOptions {\n        coreLibraryDesugaringEnabled true/" "$f"
       sed -i "s/defaultConfig {/defaultConfig {\n        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }/" "$f"
       if ! grep -q "coreLibraryDesugaring" "$f"; then
         printf '\ndependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"\n}\n' >> "$f"
+      fi
+      if ! grep -q "NewPipeExtractor" "$f"; then
+        printf "\nrepositories {\n    maven { url 'https://jitpack.io' }\n}\ndependencies {\n    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.24.2'\n    implementation 'com.squareup.okhttp3:okhttp:4.12.0'\n}\n" >> "$f"
       fi
     fi
     echo "    patch: $f"

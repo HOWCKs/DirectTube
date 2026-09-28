@@ -50,6 +50,8 @@ for f in android/app/build.gradle android/app/build.gradle.kts; do
     # file_picker (via flutter_plugin_android_lifecycle) exige compileSdk >= 36.
     sed -i -E "s/compileSdk = .*/compileSdk = 36/" "$f"
     sed -i -E "s/compileSdkVersion .*/compileSdkVersion 36/" "$f"
+    # FFmpeg embarca .so gigantes; legacy packaging evita falha de instalação.
+    sed -i "s/android {/android {\n    packagingOptions {\n        jniLibs {\n            useLegacyPackaging = true\n        }\n    }/" "$f"
     # flutter_local_notifications exige core library desugaring no :app.
     if [[ "$f" == *.kts ]]; then
       sed -i "s/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/" "$f"

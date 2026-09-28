@@ -50,7 +50,7 @@ class NewPipeEngine implements DownloadEngine {
   @override
   Future<MediaItem> resolve(String url) async {
     final Map<Object?, Object?>? raw =
-        await _channel.invokeMapMethod<Object?>('np_resolve', <String, dynamic>{
+        await _channel.invokeMapMethod<Object?, Object?>('np_resolve', <String, dynamic>{
       'url': url,
     });
     if (raw == null) {
@@ -58,7 +58,7 @@ class NewPipeEngine implements DownloadEngine {
     }
     final ParsedLink? parsed = LinkParser.parse(url);
     return MediaItem(
-      id: (raw['id'] as String?) ?? (parsed?.id ?? url),
+      id: (raw['id'] as String?) ?? (parsed?.videoId ?? url),
       title: (raw['title'] as String?) ?? 'Sem título',
       sourceUrl: url,
       host: MediaHost.youtube,

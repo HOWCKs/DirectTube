@@ -176,6 +176,25 @@ class YoutubeExplodeEngine implements DownloadEngine {
       ));
     }
 
+    // MP3: baixa o melhor áudio e converte via FFmpeg no dispositivo.
+    if (manifest.audioOnly.isNotEmpty) {
+      final AudioOnlyStreamInfo best = manifest.audioOnly.reduce(
+          (AudioOnlyStreamInfo a, AudioOnlyStreamInfo b) =>
+              a.bitrate.kiloBitsPerSecond >= b.bitrate.kiloBitsPerSecond
+                  ? a
+                  : b);
+      final int kbps = best.bitrate.kiloBitsPerSecond.round();
+      options.add(FormatOption(
+        id: best.tag.toString(),
+        label: 'MP3 ${kbps}k',
+        extension: 'mp3',
+        isAudioOnly: true,
+        bitrateKbps: kbps,
+        sizeBytes: best.size.totalBytes,
+        conversionTarget: 'mp3',
+      ));
+    }
+
     for (final VideoOnlyStreamInfo stream in manifest.videoOnly) {
       final int? height = stream.videoResolution.height;
       if (height == null || height <= 720) continue;

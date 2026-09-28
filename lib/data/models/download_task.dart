@@ -32,6 +32,7 @@ class DownloadTask {
     this.error,
     this.speedBytesPerSecond = 0,
     this.playlistIndex,
+    this.conversionTarget,
   });
 
   /// Identificador único desta tarefa na fila.
@@ -58,6 +59,9 @@ class DownloadTask {
 
   /// Índice dentro de uma playlist (para downloads em lote).
   final int? playlistIndex;
+
+  /// Conversão de áudio a aplicar após o download (ex.: `mp3`).
+  final String? conversionTarget;
 
   double get progress {
     final int? total = totalBytes;
@@ -101,6 +105,7 @@ class DownloadTask {
               : this.error),
       speedBytesPerSecond: speedBytesPerSecond ?? this.speedBytesPerSecond,
       playlistIndex: playlistIndex,
+      conversionTarget: conversionTarget,
     );
   }
 
@@ -119,10 +124,11 @@ class DownloadTask {
         status: DownloadStatus.queued,
         receivedBytes: 0,
         totalBytes: totalBytes,
-        filePath: filePath,
-        speedBytesPerSecond: 0,
-        playlistIndex: playlistIndex,
-      );
+      filePath: filePath,
+      speedBytesPerSecond: 0,
+      playlistIndex: playlistIndex,
+      conversionTarget: conversionTarget,
+    );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
@@ -142,6 +148,7 @@ class DownloadTask {
         'error': error,
         'speedBytesPerSecond': speedBytesPerSecond,
         'playlistIndex': playlistIndex,
+        'conversionTarget': conversionTarget,
       };
 
   static DownloadTask fromJson(Map<String, dynamic> json) {
@@ -168,6 +175,7 @@ class DownloadTask {
       speedBytesPerSecond:
           (json['speedBytesPerSecond'] as num?)?.toDouble() ?? 0,
       playlistIndex: (json['playlistIndex'] as num?)?.toInt(),
+      conversionTarget: json['conversionTarget'] as String?,
     );
   }
 

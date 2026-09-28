@@ -212,7 +212,7 @@ class _FormatSheetState extends State<FormatSheet> {
                         Wrap(spacing: 12, runSpacing: 12, children: audioChips),
                         const SizedBox(height: 14),
                         Text(
-                          'MP3 (conversão) e 1080p+ chegam com o módulo FFmpeg.',
+                          'MP3 é convertido no aparelho. 1080p+ (mesclar vídeo+áudio) chega em breve.',
                           style: TextStyle(
                             fontSize: 11.5,
                             color: palette.textMuted,

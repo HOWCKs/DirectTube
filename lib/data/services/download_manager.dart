@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +14,7 @@ import '../models/download_task.dart';
 import '../models/format_option.dart';
 import '../models/media_item.dart';
 import 'download_queue.dart';
+import 'ffmpeg_service.dart';
 import 'file_store.dart';
 import 'media_publisher.dart';
 
@@ -131,6 +133,7 @@ class DownloadManager extends ChangeNotifier {
       engineId: item.engineId,
       formatLabel: format.label,
       filePath: path,
+      conversionTarget: format.conversionTarget,
     );
 
     if (!queue.add(task)) return task;
@@ -249,6 +252,7 @@ class DownloadManager extends ChangeNotifier {
         label: task.formatLabel ?? task.formatId,
         extension: task.extension,
         isAudioOnly: task.isAudioOnly,
+        conversionTarget: task.conversionTarget,
       );
 
       final String outputPath = task.filePath ??
@@ -273,6 +277,19 @@ class DownloadManager extends ChangeNotifier {
           filePath: outputPath,
         ));
         notifyListeners();
+      }
+
+      // Conversão de áudio (MP3) no dispositivo, quando o formato pede.
+      // Se o módulo FFmpeg falhar, mantém o áudio original (ainda reproduzível).
+      if (format.conversionTarget == 'mp3') {
+        final String tmp = '$outputPath.conv.mp3';
+        final bool ok = await Ffmpeg.toMp3(outputPath, tmp);
+        if (ok && await File(tmp).exists()) {
+          await _files.delete(outputPath);
+          await File(tmp).rename(outputPath);
+        } else {
+          await _files.delete(tmp);
+        }
       }
 
       // Publica uma cópia na memória pública (Músicas/Filmes) para aparecer no

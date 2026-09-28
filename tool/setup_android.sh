@@ -39,6 +39,10 @@ MAIN_DIR="android/app/src/main/kotlin/$(echo "$APP_ID" | tr '.' '/')"
 mkdir -p "$MAIN_DIR"
 cp tool/android/MainActivity.kt "$MAIN_DIR/MainActivity.kt"
 
+echo "==> aplicando ícones e recursos canônicos (adaptativo + notificação)"
+mkdir -p android/app/src/main/res
+cp -r tool/android/res/. android/app/src/main/res/
+
 echo "==> ajustando applicationId/namespace para $APP_ID"
 for f in android/app/build.gradle android/app/build.gradle.kts; do
   if [ -f "$f" ]; then
@@ -49,11 +53,14 @@ for f in android/app/build.gradle android/app/build.gradle.kts; do
     # flutter_local_notifications exige core library desugaring no :app.
     if [[ "$f" == *.kts ]]; then
       sed -i "s/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/" "$f"
+      # Só arm64/armv7: corta o APK do FFmpeg pela metade e evita ABI exótica.
+      sed -i "s/defaultConfig {/defaultConfig {\n        ndk { abiFilters += listOf(\"arm64-v8a\", \"armeabi-v7a\") }/" "$f"
       if ! grep -q "coreLibraryDesugaring(" "$f"; then
         printf '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n' >> "$f"
       fi
     else
       sed -i "s/compileOptions {/compileOptions {\n        coreLibraryDesugaringEnabled true/" "$f"
+      sed -i "s/defaultConfig {/defaultConfig {\n        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }/" "$f"
       if ! grep -q "coreLibraryDesugaring" "$f"; then
         printf '\ndependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"\n}\n' >> "$f"
       fi

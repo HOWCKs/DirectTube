@@ -25,7 +25,7 @@ class DownloadNotifications {
 
   Future<void> init() async {
     const AndroidInitializationSettings android =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@drawable/notification_icon');
     const InitializationSettings settings =
         InitializationSettings(android: android);
     final bool ok = await _plugin.initialize(
